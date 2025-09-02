@@ -95,6 +95,7 @@ export async function saveSurveyData(surveyData: SurveyData, discountCode: strin
       purchase_priorities: surveyData.purchaseDecision?.priorities || {},
       where_to_buy: surveyData.purchaseDecision?.whereToBuy || [],
       price_range: surveyData.purchaseDecision?.priceRange || '',
+      other_problem: surveyData.purchaseDecision?.otherProblem || '',
       
       // Additional info
       discount_code: discountCode,
