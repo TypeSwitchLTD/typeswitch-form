@@ -29,7 +29,7 @@ const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebr
     return 'Excellent Accuracy';
   };
 
-  const shareUrl = `${window.location.origin}?ref=share`;
+  const shareUrl = 'https://typeswitch.io/?ref=share';
 
   // Language-specific share texts
   const shareTexts = {
@@ -256,7 +256,7 @@ const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebr
     // URL
     ctx.fillStyle = '#3B82F6';
     ctx.font = '24px system-ui, -apple-system, sans-serif';
-    ctx.fillText('Thank you & Good luck doing better than me', 400, yPos + 95);
+    ctx.fillText('typeswitch.io', 400, yPos + 95);
     
     // Footer
     ctx.fillStyle = '#6B7280';
@@ -313,6 +313,7 @@ const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebr
   };
 
   const shareToSocial = (platform: string) => {
+    const shareUrl = 'https://typeswitch.io/?ref=social';
     let url = '';
     const encodedUrl = encodeURIComponent(shareUrl);
     

@@ -164,6 +164,19 @@ const ThankYou: React.FC<Props> = ({ discountCode, onShare, onEmailSubmit }) => 
           </div>
         </div>
 
+        {/* Website Link */}
+        <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg text-center">
+          <p className="text-sm text-gray-600 mb-2">Want to learn more about TypeSwitch?</p>
+          <a 
+            href="https://typeswitch.io" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:text-blue-800 font-semibold text-lg"
+          >
+            Visit typeswitch.io →
+          </a>
+        </div>
+
         {/* Final Message */}
         <div className="mt-6 text-center text-gray-500 text-sm">
           <p>Survey ID: {discountCode.replace('TYPE', 'SURV')}</p>

@@ -17,6 +17,8 @@ const PurchaseDecision: React.FC<Props> = ({ onNext }) => {
     whereToBuy: [] as string[],
     priceRange: ''
   });
+  
+  const [otherProblem, setOtherProblem] = useState('');
 
   const priorityOptions = [
     { id: 'savingTime', label: 'Saving 10+ minutes per day' },
@@ -85,7 +87,8 @@ const PurchaseDecision: React.FC<Props> = ({ onNext }) => {
         purchaseDecision: {
           priorities: priorities,
           whereToBuy: purchase.whereToBuy,
-          priceRange: purchase.priceRange
+          priceRange: purchase.priceRange,
+          otherProblem: otherProblem
         }
       };
       
@@ -194,6 +197,28 @@ const PurchaseDecision: React.FC<Props> = ({ onNext }) => {
             {!purchase.priceRange && (
               <p className="text-sm text-orange-600 mt-2">Please select a price range</p>
             )}
+          </div>
+
+          {/* Open Feedback - Optional */}
+          <div className="border-t pt-6">
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">
+              Help us understand your needs better (Optional)
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Is there anything else about multilingual typing that frustrates you?
+              Share any challenges we haven't covered - your input helps us build better solutions.
+            </p>
+            <textarea
+              value={otherProblem}
+              onChange={(e) => setOtherProblem(e.target.value.slice(0, 500))}
+              placeholder="For example: specific software issues, physical discomfort, workflow interruptions..."
+              className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none resize-none"
+              rows={4}
+              maxLength={500}
+            />
+            <div className="text-right text-xs text-gray-500 mt-1">
+              {otherProblem.length}/500 characters
+            </div>
           </div>
 
           <button
