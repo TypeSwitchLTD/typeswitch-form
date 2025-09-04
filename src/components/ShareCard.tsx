@@ -8,13 +8,10 @@ interface Props {
 }
 
 const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebrew-English' }) => {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [shareStep, setShareStep] = useState<'initial' | 'generated'>('initial');
   const [imageUrl, setImageUrl] = useState<string>('');
   const [copySuccess, setCopySuccess] = useState('');
-
 
   const getWPMLevel = (wpm: number) => {
     if (wpm < 30) return 'Beginner Typist';
@@ -24,14 +21,6 @@ const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebr
     return 'Professional Typist';
   };
 
-  const getAccuracyLevel = (accuracy: number) => {
-    if (accuracy < 85) return 'Needs Practice';
-    if (accuracy < 92) return 'Good Accuracy';
-    if (accuracy < 96) return 'Great Accuracy';
-    return 'Excellent Accuracy';
-  };
-
-  // Language-specific share texts
   const shareTexts = {
     'Hebrew-English': {
       title: '🚀 עזרו לפתח את המקלדת הרב-לשונית הטובה בעולם!',
@@ -57,12 +46,11 @@ const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebr
       cta: '💡 اختبروا أنفسكم وساعدوا في البحث! كل إجابة تساعد + خصم 25%.',
       isRTL: true
     },
-    // Adding other languages with placeholders for metrics
     'Hindi-English': {
       title: '🚀 बेहतरीन keyboard बनाने में मदद करें!',
       line1: 'मैंने TypeSwitch test किया।',
       line2: 'Results देखकर आंखें खुल गईं!',
-      line3: 'पता चला कि मैं {wpm} शब्द प्रति मिनट {accuracy}% सटीकता के साथ टाइप करता हूं।',
+      line3: ' पता चला कि मैं {wpm} शब्द प्रति मिनट {accuracy}% सटीकता के साथ टाइप करता हूं।',
       cta: '💡 खुद को परखें और रिसर्च में मदद करें! आपकी मदद + 25% छूट।',
       isRTL: false
     },
@@ -75,7 +63,7 @@ const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebr
       isRTL: false
     },
     'Japanese-English': {
-      title: '🚀 最高のキーボード開発にご協力を！',
+      title: '🚀 最高のキーボード開発にご協력을！',
       line1: 'TypeSwitchテストを受けました。',
       line2: '結果を見て目が覚めました！',
       line3: 'なんと、私は毎分{wpm}語を{accuracy}%の精度で入力していました。',
@@ -91,13 +79,12 @@ const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebr
       isRTL: false
     }
   };
-
+  
   const currentText = shareTexts[selectedLanguage] || shareTexts['Hebrew-English'];
 
+  // This function remains the same
   const generateImageWithCanvas = () => {
     setIsGenerating(true);
-    
-    // This function remains largely the same as you provided
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (!ctx) {
@@ -128,18 +115,14 @@ const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebr
     });
     ctx.font = '24px system-ui, -apple-system, sans-serif';
     ctx.fillStyle = '#4B5563';
-
-    // Use the text templates, replacing placeholders
     const line1 = currentText.line1;
     const line2 = currentText.line2;
     const line3WithMetrics = currentText.line3
         .replace('{wpm}', String(metrics.wpm))
         .replace('{accuracy}', String(metrics.accuracy));
-
     ctx.fillText(line1, 400, yPos + 30);
     ctx.fillText(line2, 400, yPos + 65);
     ctx.fillText(line3WithMetrics, 400, yPos + 100);
-
     yPos += 150;
     ctx.fillStyle = '#6B7280';
     ctx.font = '20px system-ui, -apple-system, sans-serif';
@@ -204,8 +187,6 @@ const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebr
       xPos += 220;
     });
     yPos += 120;
-    
-    // **NEW:** The CTA on the image itself now doesn't contain the discount, as it's in the post text
     const imageCta = currentText.cta.split('+')[0].trim();
     ctx.fillStyle = 'rgba(147, 51, 234, 0.1)';
     roundRect(ctx, 60, yPos, 680, 140, 20);
@@ -214,7 +195,6 @@ const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebr
     ctx.font = 'bold 28px system-ui, -apple-system, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(imageCta, 400, yPos + 50);
-
     ctx.fillStyle = '#3B82F6';
     ctx.font = '24px system-ui, -apple-system, sans-serif';
     ctx.fillText('typeswitch.io', 400, yPos + 95);
@@ -228,12 +208,10 @@ const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebr
     setIsGenerating(false);
   };
   
-  // Helper functions wrapText and roundRect remain unchanged
   const wrapText = (context: CanvasRenderingContext2D, text: string, maxWidth: number): string[] => {
     const words = text.split(' ');
     const lines: string[] = [];
     let currentLine = words[0];
-
     for (let i = 1; i < words.length; i++) {
       const word = words[i];
       const width = context.measureText(currentLine + ' ' + word).width;
@@ -269,7 +247,6 @@ const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebr
     a.click();
   };
 
-  // *** NEW: Function to build the post text ***
   const buildPostText = () => {
     const line3WithMetrics = currentText.line3
       .replace('{wpm}', String(metrics.wpm))
@@ -279,51 +256,42 @@ const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebr
       currentText.line1,
       currentText.line2,
       line3WithMetrics,
-      '', // For a new line
+      '', 
       currentText.cta,
       '',
       'Test yourself: https://typeswitch.io'
     ].join('\n');
   };
 
-  // *** MAJOR CHANGE: Updated sharing logic ***
-  const shareToSocial = async (platform: string) => {
-    setCopySuccess(''); // Reset message
+  // *** NEW SIMPLIFIED LOGIC: ONLY COPIES TEXT ***
+  const shareToSocial = (platform: string) => {
     const postText = buildPostText();
     const siteUrl = 'https://typeswitch.io';
 
-    // Step 1: Copy the image to the clipboard
-    try {
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
-      await navigator.clipboard.write([
-        new ClipboardItem({ [blob.type]: blob })
-      ]);
-      setCopySuccess('✅ התמונה הועתקה! פשוט הדבק (Ctrl+V) אותה בפוסט.');
-    } catch (error) {
-      console.error('Failed to copy image to clipboard:', error);
-      setCopySuccess('לא ניתן היה להעתיק את התמונה, תוכל להוריד ולצרף אותה ידנית.');
-    }
+    // Step 1: Copy the generated text to the clipboard.
+    navigator.clipboard.writeText(postText).then(() => {
+      setCopySuccess('✅ הטקסט הועתק! פשוט הדבק (Ctrl+V) אותו בפוסט.');
+    }).catch(err => {
+      console.error('Failed to copy text:', err);
+      setCopySuccess('לא ניתן היה להעתיק את הטקסט.');
+    });
 
-    // Step 2: Open the social media platform with pre-filled text
+    // Step 2: Open the social media platform.
     let url = '';
     const encodedText = encodeURIComponent(postText);
     const encodedUrl = encodeURIComponent(siteUrl);
 
     switch (platform) {
       case 'linkedin':
-        // LinkedIn doesn't support pre-filled text via URL, so we rely on clipboard
+        // For LinkedIn, we rely purely on the clipboard copy. The URL is just to open the share dialog.
         url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
-        // A trick to pre-fill LinkedIn is to have them copy-paste.
-        // We'll copy the text for them for an easy paste.
-        navigator.clipboard.writeText(postText);
+        break;
+      case 'facebook':
+        // For Facebook, the 'quote' param is the primary method, and clipboard is a great fallback.
+        url = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${encodedText}`;
         break;
       case 'twitter':
         url = `https://twitter.com/intent/tweet?text=${encodedText}`;
-        break;
-      case 'facebook':
-        // Facebook uses the 'quote' parameter for the text
-        url = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${encodedText}`;
         break;
       case 'whatsapp':
         url = `https://wa.me/?text=${encodedText}`;
@@ -407,7 +375,6 @@ const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebr
               <img src={imageUrl} alt="Your Results" className="w-full" />
             </div>
             
-            {/* *** NEW: Success message for user *** */}
             {copySuccess && (
                <div className="mt-2 mb-4 p-3 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg text-center">
                 <p className="text-sm text-green-800 font-semibold">
