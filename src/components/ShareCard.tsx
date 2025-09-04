@@ -7,82 +7,117 @@ interface Props {
   selectedLanguage?: string;
 }
 
+// NOTE: I've moved the scoring logic directly into this file.
+// This makes the component self-contained and avoids issues with imports.
+const calculateOverallScore = (metrics: TypingMetrics): number => {
+  let score = 100;
+  
+  if (metrics.wpm < 20) score -= 30;
+  else if (metrics.wpm < 30) score -= 25;
+  else if (metrics.wpm < 40) score -= 18;
+  else if (metrics.wpm < 50) score -= 10;
+  else if (metrics.wpm < 60) score -= 5;
+  
+  if (metrics.accuracy < 70) score -= 30;
+  else if (metrics.accuracy < 80) score -= 25;
+  else if (metrics.accuracy < 85) score -= 20;
+  else if (metrics.accuracy < 90) score -= 15;
+  else if (metrics.accuracy < 95) score -= 10;
+  else if (metrics.accuracy < 98) score -= 5;
+  
+  if (metrics.languageSwitches > 20) score -= 15;
+  else if (metrics.languageSwitches > 15) score -= 12;
+  else if (metrics.languageSwitches > 10) score -= 8;
+  else if (metrics.languageSwitches > 5) score -= 4;
+  
+  if (metrics.totalMistakesMade > 80) score -= 15;
+  else if (metrics.totalMistakesMade > 60) score -= 12;
+  else if (metrics.totalMistakesMade > 40) score -= 8;
+  else if (metrics.totalMistakesMade > 20) score -= 4;
+  
+  if (metrics.frustrationScore > 8) score -= 15;
+  else if (metrics.frustrationScore > 6) score -= 12;
+  else if (metrics.frustrationScore > 4) score -= 8;
+  else if (metrics.frustrationScore > 2) score -= 4;
+  
+  return Math.max(1, Math.round(score));
+};
+
+
 const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebrew-English' }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [shareStep, setShareStep] = useState<'initial' | 'generated'>('initial');
   const [imageUrl, setImageUrl] = useState<string>('');
   const [copySuccess, setCopySuccess] = useState('');
 
-  const getWPMLevel = (wpm: number) => {
-    if (wpm < 30) return 'Beginner Typist';
-    if (wpm < 40) return 'Average Typist';
-    if (wpm < 60) return 'Above Average Typist';
-    if (wpm < 80) return 'Fast Typist';
-    return 'Professional Typist';
-  };
+  // Calculate the final score using the logic from App.tsx
+  const finalScore = calculateOverallScore(metrics);
 
   const shareTexts = {
     'Hebrew-English': {
-      title: '🚀 עזרו לפתח את המקלדת הרב-לשונית הטובה בעולם!',
-      line1: 'עשיתי את מבחן ההקלדה של TypeSwitch.',
-      line2: 'התוצאות פתחו לי עיניים על כמה טעויות אני עושה ביום!',
-      line3: 'מסתבר שהקלדתי {wpm} מילים בדקה עם {accuracy}% דיוק.',
-      cta: '💡 בואו לבדוק את עצמכם ולעזור למחקר! כל תשובה עוזרת + 25% הנחה.',
+      postLine1: 'עשיתי את מבחן ההקלדה של TypeSwitch.',
+      postLine2: 'מסתבר שרמת ההקלדה שלי היא "{scoreLevel}" עם ציון כללי של {finalScore}/100.',
+      postCta: '💡 בואו לבדוק את עצמכם ולעזור למחקר! כל תשובה עוזרת + 25% הנחה.',
+      copyMessage: '✅ הטקסט הועתק! פשוט הדבק (Ctrl+V) אותו בפוסט.',
       isRTL: true
     },
     'Russian-English': {
-      title: '🚀 Помогите создать лучшую клавиатуру!',
-      line1: 'Я прошёл тест TypeSwitch.',
-      line2: 'Результаты просто шокировали!',
-      line3: 'Оказывается, я печатаю {wpm} слов в минуту с точностью {accuracy}%.',
-      cta: '💡 Проверьте себя и помогите исследованию! + 25% скидка.',
+      postLine1: 'Я прошёл тест на скорость печати от TypeSwitch.',
+      postLine2: 'Оказывается, мой уровень — "{scoreLevel}" с общим баллом {finalScore}/100.',
+      postCta: '💡 Проверьте себя и помогите исследованию! + 25% скидка.',
+      copyMessage: '✅ Текст скопирован! Просто вставьте (Ctrl+V) его в пост.',
       isRTL: false
     },
     'Arabic-English': {
-      title: '🚀 ساعدوا في تطوير أفضل لوحة مفاتيح!',
-      line1: 'قمت بإجراء اختبار TypeSwitch.',
-      line2: 'النتائج فتحت عيني على كمية الأخطاء التي أرتكبها يومياً!',
-      line3: 'اتضح أنني أكتب {wpm} كلمة في الدقيقة بدقة {accuracy}%.',
-      cta: '💡 اختبروا أنفسكم وساعدوا في البحث! كل إجابة تساعد + خصم 25%.',
+      postLine1: 'لقد أجريت اختبار الكتابة من TypeSwitch.',
+      postLine2: 'اتضح أن مستواي هو "{scoreLevel}" بنتيجة إجمالية {finalScore}/100.',
+      postCta: '💡 اختبروا أنفسكم وساعدوا في البحث! كل إجابة تساعد + خصم 25%.',
+      copyMessage: '✅ تم نسخ النص! فقط قم بلصقه (Ctrl+V) في المنشور.',
       isRTL: true
     },
     'Hindi-English': {
-      title: '🚀 बेहतरीन keyboard बनाने में मदद करें!',
-      line1: 'मैंने TypeSwitch test किया।',
-      line2: 'Results देखकर आंखें खुल गईं!',
-      line3: ' पता चला कि मैं {wpm} शब्द प्रति मिनट {accuracy}% सटीकता के साथ टाइप करता हूं।',
-      cta: '💡 खुद को परखें और रिसर्च में मदद करें! आपकी मदद + 25% छूट।',
+      postLine1: 'मैंने TypeSwitch टाइपिंग टेस्ट दिया।',
+      postLine2: 'पता चला कि मेरा स्तर "{scoreLevel}" है और कुल स्कोर {finalScore}/100 है।',
+      postCta: '💡 खुद को परखें और रिसर्च में मदद करें! आपकी मदद + 25% छूट।',
+      copyMessage: '✅ टेक्स्ट कॉपी हो गया! बस इसे पोस्ट में पेस्ट (Ctrl+V) करें।',
       isRTL: false
     },
     'French-English': {
-      title: '🚀 Aidez à développer le meilleur clavier!',
-      line1: "J'ai fait le test TypeSwitch.",
-      line2: 'Les résultats sont révélateurs!',
-      line3: "Il s'avère que je tape {wpm} mots par minute avec une précision de {accuracy}%.",
-      cta: '💡 Testez-vous et aidez la recherche ! Chaque réponse aide + 25% de réduction.',
+      postLine1: "J'ai passé le test de dactylographie de TypeSwitch.",
+      postLine2: 'Il s\'avère que mon niveau est "{scoreLevel}" avec un score global de {finalScore}/100.',
+      postCta: '💡 Testez-vous et aidez la recherche ! + 25% de réduction.',
+      copyMessage: '✅ Texte copié ! Il suffit de le coller (Ctrl+V) dans la publication.',
       isRTL: false
     },
     'Japanese-English': {
-      title: '🚀 最高のキーボード開発にご協력을！',
-      line1: 'TypeSwitchテストを受けました。',
-      line2: '結果を見て目が覚めました！',
-      line3: 'なんと、私は毎分{wpm}語を{accuracy}%の精度で入力していました。',
-      cta: '💡 あなたもテストして研究にご協力ください！ご協力で25%割引。',
+      postLine1: 'TypeSwitchのタイピングテストを受けました。',
+      postLine2: '私のレベルは「{scoreLevel}」で、総合スコアは{finalScore}/100でした。',
+      postCta: '💡 あなたもテストして研究にご協力ください！+ 25%割引。',
+      copyMessage: '✅ テキストをコピーしました！投稿に貼り付け（Ctrl+V）てください。',
       isRTL: false
     },
     'Korean-English': {
-      title: '🚀 최고의 키보드 개발을 도와주세요!',
-      line1: 'TypeSwitch 테스트를 해봤는데,',
-      line2: '결과를 보고 깜짝 놀랐어요!',
-      line3: '제가 분당 {wpm} 단어를 {accuracy}%의 정확도로 입력하고 있더라고요.',
-      cta: '💡 여러분도 테스트해보고 연구에 도움을 주세요! 참여하고 25% 할인 받으세요.',
+      postLine1: 'TypeSwitch 타이핑 테스트를 해봤어요.',
+      postLine2: '제 수준은 "{scoreLevel}"이고, 총 점수는 {finalScore}/100점입니다.',
+      postCta: '💡 여러분도 테스트해보고 연구에 도움을 주세요! + 25% 할인.',
+      copyMessage: '✅ 텍스트가 복사되었습니다! 게시물에 붙여넣기(Ctrl+V)하세요.',
       isRTL: false
     }
   };
-  
-  const currentText = shareTexts[selectedLanguage] || shareTexts['Hebrew-English'];
 
-  // This function remains the same
+  const currentText = shareTexts[selectedLanguage] || shareTexts['Hebrew-English'];
+  
+  // NEW: Encouraging titles based on final score
+  const getScoreLevelInfo = (score: number) => {
+    if (score >= 85) return { level: 'Excellent!', color: '#22C55E', gradient: ['#6EE7B7', '#3B82F6'] };
+    if (score >= 70) return { level: 'Good', color: '#3B82F6', gradient: ['#93C5FD', '#8B5CF6'] };
+    if (score >= 55) return { level: 'Average', color: '#F59E0B', gradient: ['#FDE68A', '#F97316'] };
+    if (score >= 40) return { level: 'Needs Improvement', color: '#F97316', gradient: ['#FDBA74', '#EF4444'] };
+    return { level: 'Room to Grow', color: '#EF4444', gradient: ['#FCA5A5', '#D946EF'] };
+  };
+  
+  const scoreLevelInfo = getScoreLevelInfo(finalScore);
+
   const generateImageWithCanvas = () => {
     setIsGenerating(true);
     const canvas = document.createElement('canvas');
@@ -93,139 +128,107 @@ const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebr
     }
     canvas.width = 800;
     canvas.height = 1000;
+    
+    // NEW: Dynamic gradient background based on score
     const gradient = ctx.createLinearGradient(0, 0, 800, 1000);
-    gradient.addColorStop(0, '#3B82F6');
-    gradient.addColorStop(1, '#8B5CF6');
+    gradient.addColorStop(0, scoreLevelInfo.gradient[0]);
+    gradient.addColorStop(1, scoreLevelInfo.gradient[1]);
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, 800, 1000);
+
     ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
     roundRect(ctx, 40, 40, 720, 920, 20);
     ctx.fill();
     if (currentText.isRTL) {
       ctx.direction = 'rtl';
     }
-    ctx.fillStyle = '#1F2937';
+    
+    // --- Drawing content on the canvas ---
+    let yPos = 120;
+
+    // NEW: Main Title (The encouraging level)
+    ctx.font = 'bold 52px system-ui, -apple-system, sans-serif';
+    ctx.fillStyle = scoreLevelInfo.color;
+    ctx.textAlign = 'center';
+    ctx.fillText(scoreLevelInfo.level, 400, yPos);
+    
+    // NEW: Subtitle with final score
+    yPos += 70;
     ctx.font = 'bold 32px system-ui, -apple-system, sans-serif';
-    ctx.textAlign = 'center';
-    const titleLines = wrapText(ctx, currentText.title, 680);
-    let yPos = 100;
-    titleLines.forEach(line => {
-      ctx.fillText(line, 400, yPos);
-      yPos += 40;
+    ctx.fillStyle = '#374151';
+    ctx.fillText(`Overall Score: ${finalScore}/100`, 400, yPos);
+
+    // Key metrics section
+    yPos += 100;
+    const stats = [
+      { label: 'Speed (WPM)', value: metrics.wpm },
+      { label: 'Accuracy', value: `${metrics.accuracy}%` },
+      { label: 'Mistakes', value: metrics.totalMistakesMade }
+    ];
+    let xPos = 100;
+    stats.forEach(stat => {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      roundRect(ctx, xPos, yPos, 200, 100, 15);
+      ctx.fill();
+      ctx.fillStyle = '#1F2937';
+      ctx.font = 'bold 40px system-ui, -apple-system, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(String(stat.value), xPos + 100, yPos + 55);
+      ctx.font = '18px system-ui, -apple-system, sans-serif';
+      ctx.fillStyle = '#6B7280';
+      ctx.fillText(stat.label, xPos + 100, yPos + 85);
+      xPos += 220;
     });
-    ctx.font = '24px system-ui, -apple-system, sans-serif';
-    ctx.fillStyle = '#4B5563';
-    const line1 = currentText.line1;
-    const line2 = currentText.line2;
-    const line3WithMetrics = currentText.line3
-        .replace('{wpm}', String(metrics.wpm))
-        .replace('{accuracy}', String(metrics.accuracy));
-    ctx.fillText(line1, 400, yPos + 30);
-    ctx.fillText(line2, 400, yPos + 65);
-    ctx.fillText(line3WithMetrics, 400, yPos + 100);
+
+    // Frustration bar
     yPos += 150;
-    ctx.fillStyle = '#6B7280';
-    ctx.font = '20px system-ui, -apple-system, sans-serif';
-    ctx.fillText('My Results', 400, yPos);
-    yPos += 40;
-    ctx.fillStyle = 'rgba(59, 130, 246, 0.1)';
-    roundRect(ctx, 100, yPos, 280, 120, 15);
-    ctx.fill();
-    ctx.fillStyle = '#3B82F6';
-    ctx.font = 'bold 48px system-ui, -apple-system, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(`${metrics.wpm} WPM`, 240, yPos + 70);
-    ctx.font = '16px system-ui, -apple-system, sans-serif';
-    ctx.fillStyle = '#6B7280';
-    ctx.fillText(getWPMLevel(metrics.wpm || 0), 240, yPos + 100);
-    ctx.fillStyle = 'rgba(34, 197, 94, 0.1)';
-    roundRect(ctx, 420, yPos, 280, 120, 15);
-    ctx.fill();
-    ctx.fillStyle = '#22C55E';
-    ctx.font = 'bold 48px system-ui, -apple-system, sans-serif';
-    ctx.fillText(`${metrics.accuracy}%`, 560, yPos + 70);
-    ctx.font = '16px system-ui, -apple-system, sans-serif';
-    ctx.fillStyle = '#6B7280';
-    ctx.fillText('Accuracy', 560, yPos + 100);
-    yPos += 150;
-    ctx.fillStyle = 'rgba(239, 68, 68, 0.1)';
+    ctx.fillStyle = 'rgba(239, 68, 68, 0.05)';
     roundRect(ctx, 100, yPos, 600, 80, 15);
     ctx.fill();
     ctx.fillStyle = '#1F2937';
     ctx.font = '22px system-ui, -apple-system, sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText('Frustration Level:', 120, yPos + 35);
-    ctx.font = 'bold 32px system-ui, -apple-system, sans-serif';
-    ctx.fillStyle = metrics.frustrationScore > 6 ? '#EF4444' : metrics.frustrationScore > 3 ? '#F59E0B' : '#22C55E';
-    ctx.textAlign = 'right';
-    ctx.fillText(`${metrics.frustrationScore}/10`, 680, yPos + 35);
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-    roundRect(ctx, 120, yPos + 45, 560, 20, 10);
-    ctx.fill();
+    ctx.fillText('Frustration Level:', 120, yPos + 48);
     const barColor = metrics.frustrationScore > 6 ? '#EF4444' : metrics.frustrationScore > 3 ? '#F59E0B' : '#22C55E';
     ctx.fillStyle = barColor;
-    roundRect(ctx, 120, yPos + 45, (560 * metrics.frustrationScore) / 10, 20, 10);
+    const barWidth = (400 * metrics.frustrationScore) / 10;
+    roundRect(ctx, 320, yPos + 25, 360, 30, 15);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
     ctx.fill();
-    yPos += 120;
-    const stats = [
-      { label: 'Mistakes', value: metrics.totalMistakesMade },
-      { label: 'Corrected', value: metrics.corrections },
-      { label: 'Lang Switches', value: metrics.languageSwitches }
-    ];
-    let xPos = 100;
-    stats.forEach(stat => {
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-      roundRect(ctx, xPos, yPos, 200, 80, 10);
-      ctx.fill();
-      ctx.fillStyle = '#1F2937';
-      ctx.font = 'bold 32px system-ui, -apple-system, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(String(stat.value), xPos + 100, yPos + 40);
-      ctx.font = '16px system-ui, -apple-system, sans-serif';
-      ctx.fillStyle = '#6B7280';
-      ctx.fillText(stat.label, xPos + 100, yPos + 65);
-      xPos += 220;
-    });
-    yPos += 120;
-    const imageCta = currentText.cta.split('+')[0].trim();
+    roundRect(ctx, 320, yPos + 25, barWidth > 360 ? 360: barWidth, 30, 15);
+    ctx.fillStyle = barColor;
+    ctx.fill();
+    ctx.fillStyle = '#FFF';
+    ctx.font = 'bold 16px system-ui, -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`${metrics.frustrationScore}/10`, 320 + (barWidth > 360 ? 360: barWidth)/2, yPos + 46);
+    
+    // CTA Section
+    yPos += 150;
+    const shareUrl = "typeswitch.io";
     ctx.fillStyle = 'rgba(147, 51, 234, 0.1)';
-    roundRect(ctx, 60, yPos, 680, 140, 20);
+    roundRect(ctx, 60, yPos, 680, 200, 20);
     ctx.fill();
     ctx.fillStyle = '#7C3AED';
     ctx.font = 'bold 28px system-ui, -apple-system, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(imageCta, 400, yPos + 50);
+    ctx.fillText('Help build the best multilingual keyboard!', 400, yPos + 70);
     ctx.fillStyle = '#3B82F6';
-    ctx.font = '24px system-ui, -apple-system, sans-serif';
-    ctx.fillText('typeswitch.io', 400, yPos + 95);
-    ctx.fillStyle = '#6B7280';
+    ctx.font = '36px system-ui, -apple-system, sans-serif';
+    ctx.fillText(shareUrl, 400, yPos + 130);
+    
+    // Footer
+    ctx.fillStyle = '#4B5563';
     ctx.font = '16px system-ui, -apple-system, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('Join 1000+ testers shaping the future of multilingual typing', 400, 950);
+    ctx.fillText('Join 1000+ testers shaping the future of typing', 400, 950);
 
     setImageUrl(canvas.toDataURL('image/png'));
     setShareStep('generated');
     setIsGenerating(false);
   };
   
-  const wrapText = (context: CanvasRenderingContext2D, text: string, maxWidth: number): string[] => {
-    const words = text.split(' ');
-    const lines: string[] = [];
-    let currentLine = words[0];
-    for (let i = 1; i < words.length; i++) {
-      const word = words[i];
-      const width = context.measureText(currentLine + ' ' + word).width;
-      if (width < maxWidth) {
-        currentLine += ' ' + word;
-      } else {
-        lines.push(currentLine);
-        currentLine = word;
-      }
-    }
-    lines.push(currentLine);
-    return lines;
-  };
-
+  // Helper to draw rounded rectangles (no changes)
   const roundRect = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) => {
     ctx.beginPath();
     ctx.moveTo(x + radius, y);
@@ -247,47 +250,41 @@ const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebr
     a.click();
   };
 
+  // Build the text for sharing, now with the final score
   const buildPostText = () => {
-    const line3WithMetrics = currentText.line3
-      .replace('{wpm}', String(metrics.wpm))
-      .replace('{accuracy}', String(metrics.accuracy));
+    const postLine2WithScore = currentText.postLine2
+      .replace('{scoreLevel}', scoreLevelInfo.level)
+      .replace('{finalScore}', String(finalScore));
 
     return [
-      currentText.line1,
-      currentText.line2,
-      line3WithMetrics,
+      currentText.postLine1,
+      postLine2WithScore,
       '', 
-      currentText.cta,
+      currentText.postCta,
       '',
       'Test yourself: https://typeswitch.io'
     ].join('\n');
   };
 
-  // *** NEW SIMPLIFIED LOGIC: ONLY COPIES TEXT ***
   const shareToSocial = (platform: string) => {
     const postText = buildPostText();
     const siteUrl = 'https://typeswitch.io';
 
-    // Step 1: Copy the generated text to the clipboard.
     navigator.clipboard.writeText(postText).then(() => {
-      setCopySuccess('✅ הטקסט הועתק! פשוט הדבק (Ctrl+V) אותו בפוסט.');
+      setCopySuccess(currentText.copyMessage); // Use translated message
     }).catch(err => {
       console.error('Failed to copy text:', err);
-      setCopySuccess('לא ניתן היה להעתיק את הטקסט.');
     });
 
-    // Step 2: Open the social media platform.
     let url = '';
     const encodedText = encodeURIComponent(postText);
     const encodedUrl = encodeURIComponent(siteUrl);
 
     switch (platform) {
       case 'linkedin':
-        // For LinkedIn, we rely purely on the clipboard copy. The URL is just to open the share dialog.
         url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
         break;
       case 'facebook':
-        // For Facebook, the 'quote' param is the primary method, and clipboard is a great fallback.
         url = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${encodedText}`;
         break;
       case 'twitter':
@@ -301,137 +298,59 @@ const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebr
     if (url) window.open(url, '_blank');
   };
 
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-8">
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-3xl w-full">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-800">Share Your Results</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 transition"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 transition">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
 
         {shareStep === 'initial' && (
-          <>
+           <>
             <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-6 mb-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-3 text-center">
-                Your results will include:
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-800 mb-3 text-center">Your results will include:</h3>
               <ul className="space-y-2 text-gray-700">
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Your typing speed and accuracy
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Personalized message in your language ({selectedLanguage})
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  25% discount offer for your friends
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Beautiful shareable image with all the info
-                </li>
+                <li className="flex items-center"><span className="text-green-500 mr-2">✓</span>Your final score and title</li>
+                <li className="flex items-center"><span className="text-green-500 mr-2">✓</span>Your typing speed and accuracy</li>
+                <li className="flex items-center"><span className="text-green-500 mr-2">✓</span>A beautiful shareable image with all the info</li>
               </ul>
             </div>
-
-            <button
-              onClick={generateImageWithCanvas}
-              disabled={isGenerating}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-6 rounded-lg font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition disabled:opacity-50 flex items-center justify-center"
-            >
-              {isGenerating ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Creating your personalized image...
-                </>
-              ) : (
-                <>📸 Generate Share Image in {selectedLanguage.split('-')[0]}</>
-              )}
+            <button onClick={generateImageWithCanvas} disabled={isGenerating} className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-6 rounded-lg font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition disabled:opacity-50 flex items-center justify-center">
+              {isGenerating ? 'Creating your image...' : `📸 Generate Share Image in ${selectedLanguage.split('-')[0]}`}
             </button>
-
-            <div className="mt-4 p-4 bg-yellow-50 rounded-lg">
-              <p className="text-sm text-yellow-800 text-center">
-                💡 The image will contain your message in {selectedLanguage.split('-')[0]} to reach your community!
-              </p>
-            </div>
           </>
         )}
 
         {shareStep === 'generated' && (
           <>
-            <div className="mb-6 max-h-96 overflow-y-auto rounded-lg shadow-lg">
+            <div className="mb-4 max-h-96 overflow-y-auto rounded-lg shadow-lg border">
               <img src={imageUrl} alt="Your Results" className="w-full" />
             </div>
             
             {copySuccess && (
-               <div className="mt-2 mb-4 p-3 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg text-center">
-                <p className="text-sm text-green-800 font-semibold">
-                  {copySuccess}
-                </p>
+               <div className="mb-4 p-3 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg text-center">
+                <p className="text-sm text-green-800 font-semibold">{copySuccess}</p>
               </div>
             )}
 
-            <div className="space-y-4">
+            <div className="space-y-3">
                <div className="grid grid-cols-2 gap-3">
-                 <button
-                  onClick={() => shareToSocial('linkedin')}
-                  className="bg-blue-800 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-900 transition"
-                >
-                  Share to LinkedIn
-                </button>
-                <button
-                  onClick={() => shareToSocial('twitter')}
-                  className="bg-sky-500 text-white py-3 px-4 rounded-lg font-semibold hover:bg-sky-600 transition"
-                >
-                  Share to Twitter/X
-                </button>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                 <button
-                  onClick={() => shareToSocial('facebook')}
-                  className="bg-blue-700 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-800 transition"
-                >
-                  Share to Facebook
-                </button>
-                <button
-                  onClick={() => shareToSocial('whatsapp')}
-                  className="bg-green-500 text-white py-3 px-4 rounded-lg font-semibold hover:bg-green-600 transition"
-                >
-                  Share to WhatsApp
-                </button>
-              </div>
-              
-              <div className="flex items-center gap-3">
-                  <button
-                    onClick={downloadImage}
-                    className="w-full bg-gray-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-gray-700 transition flex items-center justify-center"
-                  >
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
+                 <button onClick={() => shareToSocial('linkedin')} className="bg-blue-800 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-900 transition">Share to LinkedIn</button>
+                 <button onClick={() => shareToSocial('twitter')} className="bg-sky-500 text-white py-3 px-4 rounded-lg font-semibold hover:bg-sky-600 transition">Share to Twitter/X</button>
+               </div>
+               <div className="grid grid-cols-2 gap-3">
+                 <button onClick={() => shareToSocial('facebook')} className="bg-blue-700 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-800 transition">Share to Facebook</button>
+                 <button onClick={() => shareToSocial('whatsapp')} className="bg-green-500 text-white py-3 px-4 rounded-lg font-semibold hover:bg-green-600 transition">Share to WhatsApp</button>
+               </div>
+               <div className="flex items-center gap-3">
+                  <button onClick={downloadImage} className="w-full bg-gray-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-gray-700 transition flex items-center justify-center">
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                     Download
                   </button>
-                   <button
-                    onClick={() => {
-                      setShareStep('initial');
-                      setImageUrl('');
-                      setCopySuccess('');
-                    }}
-                    className="w-full bg-gray-200 text-gray-700 py-2 px-4 rounded-lg font-semibold hover:bg-gray-300 transition"
-                  >
+                   <button onClick={() => { setShareStep('initial'); setImageUrl(''); setCopySuccess(''); }} className="w-full bg-gray-200 text-gray-700 py-2 px-4 rounded-lg font-semibold hover:bg-gray-300 transition">
                     ← Back
                   </button>
               </div>
@@ -441,6 +360,25 @@ const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebr
       </div>
     </div>
   );
+};
+
+// Helper function to wrap text on canvas (not used in the new design, but kept for safety)
+const wrapText = (context: CanvasRenderingContext2D, text: string, maxWidth: number): string[] => {
+    const words = text.split(' ');
+    const lines: string[] = [];
+    let currentLine = words[0];
+    for (let i = 1; i < words.length; i++) {
+        const word = words[i];
+        const width = context.measureText(currentLine + ' ' + word).width;
+        if (width < maxWidth) {
+            currentLine += ' ' + word;
+        } else {
+            lines.push(currentLine);
+            currentLine = word;
+        }
+    }
+    lines.push(currentLine);
+    return lines;
 };
 
 export default ShareCard;
