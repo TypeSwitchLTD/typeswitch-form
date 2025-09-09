@@ -71,7 +71,6 @@ const PurchaseDecision: React.FC<Props> = ({ onNext }) => {
       } else if (current.length < 2) {
         current.push(option);
       } else {
-        // Replace the second option
         current[1] = option;
       }
       
@@ -82,7 +81,6 @@ const PurchaseDecision: React.FC<Props> = ({ onNext }) => {
   const handleSubmit = () => {
     const allPrioritiesSet = Object.values(priorities).every(p => p > 0);
     if (allPrioritiesSet && purchase.whereToBuy.length > 0 && purchase.priceRange) {
-      // Create the complete purchaseDecision object
       const purchaseDecisionData = {
         purchaseDecision: {
           priorities: priorities,
@@ -92,7 +90,6 @@ const PurchaseDecision: React.FC<Props> = ({ onNext }) => {
         }
       };
       
-      console.log('Submitting purchase decision:', purchaseDecisionData);
       onNext(purchaseDecisionData);
     }
   };
@@ -100,24 +97,23 @@ const PurchaseDecision: React.FC<Props> = ({ onNext }) => {
   const isAllPrioritiesSet = Object.values(priorities).every(p => p > 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-8">
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-3xl w-full">
-        <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">Purchase Decision</h2>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-3">
+      <div className="bg-white rounded-xl shadow-xl p-4 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <h2 className="text-xl font-bold text-gray-800 mb-3 text-center">Purchase Decision</h2>
         
-        <div className="space-y-8">
+        <div className="space-y-4">
           {/* Priority Ranking */}
           <div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">
-              Rank by importance (1=most important, 5=least important):
+            <h3 className="text-sm font-semibold text-gray-800 mb-2">
+              Rank by importance (1=most, 5=least):
             </h3>
-            <p className="text-sm text-gray-600 mb-4">Each number can only be used once</p>
-            <div className="space-y-3">
+            <div className="space-y-2">
               {priorityOptions.map((option) => (
-                <div key={option.id} className="flex items-center space-x-4">
+                <div key={option.id} className="flex items-center space-x-3">
                   <select
                     value={priorities[option.id] || ''}
                     onChange={(e) => handlePriorityChange(option.id, parseInt(e.target.value))}
-                    className="w-16 p-2 border rounded-lg text-center font-semibold"
+                    className="w-12 p-1 border rounded text-center text-sm font-semibold"
                   >
                     <option value="">-</option>
                     <option value="1">1</option>
@@ -126,21 +122,18 @@ const PurchaseDecision: React.FC<Props> = ({ onNext }) => {
                     <option value="4">4</option>
                     <option value="5">5</option>
                   </select>
-                  <span className="text-gray-700 flex-1">{option.label}</span>
+                  <span className="text-gray-700 flex-1 text-sm">{option.label}</span>
                 </div>
               ))}
             </div>
-            {!isAllPrioritiesSet && (
-              <p className="text-sm text-orange-600 mt-2">Please rank all items</p>
-            )}
           </div>
 
-          {/* Where to Buy - Max 2 selections */}
+          {/* Where to Buy */}
           <div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">Where would you purchase?</h3>
-            <p className="text-sm text-gray-600 mb-4">Select up to 2 options (1st choice and alternative)</p>
-            <div className="grid grid-cols-2 gap-3">
-              {purchaseOptions.map((option, index) => {
+            <h3 className="text-sm font-semibold text-gray-800 mb-1">Where would you purchase?</h3>
+            <p className="text-xs text-gray-600 mb-2">Select up to 2 options</p>
+            <div className="grid grid-cols-2 gap-2">
+              {purchaseOptions.map((option) => {
                 const optionIndex = purchase.whereToBuy.indexOf(option);
                 const isSelected = optionIndex > -1;
                 const isPrimary = optionIndex === 0;
@@ -149,14 +142,14 @@ const PurchaseDecision: React.FC<Props> = ({ onNext }) => {
                   <button
                     key={option}
                     onClick={() => togglePurchaseOption(option)}
-                    className={`p-3 rounded-lg transition text-left relative ${
+                    className={`p-2 rounded-lg transition text-left relative text-xs ${
                       isSelected
                         ? 'bg-blue-600 text-white'
                         : 'bg-gray-100 hover:bg-gray-200'
                     }`}
                   >
                     {isSelected && (
-                      <span className="absolute top-1 right-2 text-xs font-bold bg-white text-blue-600 px-2 py-1 rounded">
+                      <span className="absolute top-0.5 right-1 text-xs font-bold bg-white text-blue-600 px-1 rounded">
                         {isPrimary ? '1st' : '2nd'}
                       </span>
                     )}
@@ -165,15 +158,12 @@ const PurchaseDecision: React.FC<Props> = ({ onNext }) => {
                 );
               })}
             </div>
-            {purchase.whereToBuy.length === 0 && (
-              <p className="text-sm text-orange-600 mt-2">Please select at least one option</p>
-            )}
           </div>
 
           {/* Price Range */}
           <div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">How much would you pay?</h3>
-            <div className="grid grid-cols-2 gap-3">
+            <h3 className="text-sm font-semibold text-gray-800 mb-2">How much would you pay?</h3>
+            <div className="grid grid-cols-3 gap-2">
               {[
                 'Up to $80',
                 '$80-120',
@@ -184,7 +174,7 @@ const PurchaseDecision: React.FC<Props> = ({ onNext }) => {
                 <button
                   key={option}
                   onClick={() => setPurchase({...purchase, priceRange: option})}
-                  className={`p-3 rounded-lg transition ${
+                  className={`p-2 rounded-lg transition text-xs ${
                     purchase.priceRange === option
                       ? 'bg-blue-600 text-white'
                       : 'bg-gray-100 hover:bg-gray-200'
@@ -194,37 +184,30 @@ const PurchaseDecision: React.FC<Props> = ({ onNext }) => {
                 </button>
               ))}
             </div>
-            {!purchase.priceRange && (
-              <p className="text-sm text-orange-600 mt-2">Please select a price range</p>
-            )}
           </div>
 
-          {/* Open Feedback - Optional */}
-          <div className="border-t pt-6">
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">
-              Help us understand your needs better (Optional)
+          {/* Open Feedback */}
+          <div className="border-t pt-3">
+            <h3 className="text-sm font-semibold text-gray-800 mb-1">
+              Help us understand (Optional)
             </h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Is there anything else about multilingual typing that frustrates you?
-              Share any challenges we haven't covered - your input helps us build better solutions.
-            </p>
             <textarea
               value={otherProblem}
               onChange={(e) => setOtherProblem(e.target.value.slice(0, 500))}
-              placeholder="For example: specific software issues, physical discomfort, workflow interruptions..."
-              className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none resize-none"
-              rows={4}
+              placeholder="Any other frustrations with multilingual typing..."
+              className="w-full p-2 border-2 border-gray-300 rounded-lg text-xs focus:border-blue-500 focus:outline-none resize-none"
+              rows={3}
               maxLength={500}
             />
-            <div className="text-right text-xs text-gray-500 mt-1">
-              {otherProblem.length}/500 characters
+            <div className="text-right text-xs text-gray-500 mt-0.5">
+              {otherProblem.length}/500
             </div>
           </div>
 
           <button
             onClick={handleSubmit}
             disabled={!purchase.whereToBuy.length || !purchase.priceRange || !isAllPrioritiesSet}
-            className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-semibold text-sm hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Complete Survey
           </button>
