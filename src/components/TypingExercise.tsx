@@ -13,27 +13,13 @@ const exercises = {
       title: "Exercise 1 - Purchasing Email",
       text: `لفريق المشتريات،
 في متابعة للـ RFQ الذي نشرناه، تلقينا عروضاً من 12 مورداً، معظمهم من APAC وأوروبا.
-حالياً أفضل 3 موردين:
-1. Abra: مُصنِّع
+حالياً Top 3 موردين:
+1. Ycon DevOps & ALM: استشارات مهنية
 2. Kabri: مورد فرعي
 3. CocoLemon: موزع
 أطلب فحص شروط الدفع بشكل عاجل (NET 30/60/90) وأوقات التسليم.
 آخر موعد للتنفيذ 15/07/2025.
 نائب مدير المشتريات - COO`
-    }
-  ],
-  'French-English': [
-    {
-      title: "Exercise 1 - Purchasing Email",
-      text: `À l'équipe des achats,
-Suite au RFQ que nous avons publié, nous avons reçu des propositions de 12 fournisseurs, principalement d'APAC et d'Europe.
-Actuellement, Top 3 fournisseurs:
-1. Abra: fabricant
-2. Kabri: sous-traitant
-3. CocoLemon: distributeur
-Je demande de vérifier en urgence les conditions de paiement (NET 30/60/90) et les délais de livraison.
-Date limite d'exécution 15/07/2025.
-Directeur adjoint des achats - COO`
     }
   ],
   'Hebrew-English': [
@@ -42,40 +28,12 @@ Directeur adjoint des achats - COO`
       text: `לצוות הרכש,
 בהמשך ל-RFQ שפרסמנו, קיבלנו הצעות מ-12 ספקים, רובם מ-APAC ואירופה.
 כרגע Top 3 ספקים:
-1. Abra: יצרן
+1. Ycon DevOps & ALM: יעוץ מקצועי
 2. Kabri: ספק משנה
 3. CocoLemon: מפיץ
 מבקש לבדוק בדחיפות תנאי תשלום (NET 30/60/90) וזמני אספקה.
 תאריך אחרון לביצוע 15/07/2025.
 סמנכ"ל רכש - COO`
-    }
-  ],
-  'Hindi-English': [
-    {
-      title: "Exercise 1 - Purchasing Email",
-      text: `procurement team के लिए,
-हमारे द्वारा प्रकाशित RFQ के बाद, हमें 12 suppliers से proposals मिले हैं, जिनमें से अधिकतर APAC और यूरोप से हैं।
-अभी Top 3 suppliers:
-1. Abra: manufacturer
-2. Kabri: sub-contractor
-3. CocoLemon: distributor
-कृपया payment terms (NET 30/60/90) और delivery times को तुरंत check करें।
-अंतिम तारीख 15/07/2025 है।
-Deputy Director Procurement - COO`
-    }
-  ],
-  'Japanese-English': [
-    {
-      title: "Exercise 1 - Purchasing Email",
-      text: `調達チームへ、
-公開したRFQに続いて、12のsuppliersから提案を受け取りました。そのほとんどがAPACとヨーロッパからです。
-現在のTop 3 suppliers:
-1. Abra: メーカー
-2. Kabri: サブコントラクター
-3. CocoLemon: ディストリビューター
-支払い条件（NET 30/60/90）と配送時間を緊急に確認してください。
-実行期限は15/07/2025です。
-調達副部長 - COO`
     }
   ],
   'Russian-English': [
@@ -84,7 +42,7 @@ Deputy Director Procurement - COO`
       text: `Команде закупок,
 В продолжение опубликованного RFQ мы получили предложения от 12 поставщиков, в основном из APAC и Европы.
 Сейчас Top 3 поставщика:
-1. Abra: производитель
+1. Ycon DevOps & ALM: профессиональный консалтинг
 2. Kabri: субподрядчик
 3. CocoLemon: дистрибьютор
 Прошу срочно проверить условия оплаты (NET 30/60/90) и сроки поставки.
@@ -101,29 +59,24 @@ const TypingExercise: React.FC<Props> = ({ exerciseNumber, onComplete, selectedL
   const [deletions, setDeletions] = useState(0);
   const [languageSwitches, setLanguageSwitches] = useState(0);
   const [lastKeystrokeTime, setLastKeystrokeTime] = useState<number>(0);
-  const [lastLanguage, setLastLanguage] = useState<'hebrew' | 'arabic' | 'english' | 'russian' | 'hindi' | 'french' | 'japanese' | 'korean' | null>(null);
+  const [lastLanguage, setLastLanguage] = useState<'hebrew' | 'arabic' | 'english' | 'russian' | null>(null);
   const [allMistakes, setAllMistakes] = useState<Set<number>>(new Set());
   const [correctedMistakes, setCorrectedMistakes] = useState<Set<number>>(new Set());
   const [punctuationMistakes, setPunctuationMistakes] = useState(0);
   const [cheatingDetected, setCheatingDetected] = useState(false);
-  const [charFrequency, setCharFrequency] = useState<{[key: string]: number}>({});
   const [warningShown, setWarningShown] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   
-  // Refs for cleanup - FIXED MEMORY LEAKS
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const pasteHandler = useRef<((e: ClipboardEvent) => void) | null>(null);
   const copyHandler = useRef<((e: ClipboardEvent) => void) | null>(null);
   const cutHandler = useRef<((e: ClipboardEvent) => void) | null>(null);
 
-  // Get exercises based on selected language
-  const exerciseSet = exercises[selectedLanguage] || exercises['Arabic-English'];
+  const exerciseSet = exercises[selectedLanguage] || exercises['Hebrew-English'];
   const exercise = exerciseSet[exerciseNumber - 1];
   
-  // Determine if RTL based on language
   const isRTL = selectedLanguage === 'Hebrew-English' || selectedLanguage === 'Arabic-English';
 
-  // Common punctuation confusion patterns
   const punctuationConfusions = [
     ['.', ','], [',', '.'],
     ['(', ')'], [')', '('],
@@ -139,14 +92,12 @@ const TypingExercise: React.FC<Props> = ({ exerciseNumber, onComplete, selectedL
 
   const normalizedExerciseText = normalizeText(exercise.text);
 
-  // Cleanup function - PROPERLY CLEAN ALL RESOURCES
   const cleanup = () => {
     if (timerRef.current) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
     }
     
-    // Remove event listeners
     if (pasteHandler.current) {
       document.removeEventListener('paste', pasteHandler.current);
       pasteHandler.current = null;
@@ -161,13 +112,10 @@ const TypingExercise: React.FC<Props> = ({ exerciseNumber, onComplete, selectedL
     }
   };
 
-  useEffect(() => {
+  const resetExerciseState = () => {
+    setUserInput('');
     setStartTime(Date.now());
     setLastKeystrokeTime(Date.now());
-    textareaRef.current?.focus();
-    
-    // Reset all state
-    setUserInput('');
     setDeletions(0);
     setLanguageSwitches(0);
     setKeystrokes([]);
@@ -176,22 +124,109 @@ const TypingExercise: React.FC<Props> = ({ exerciseNumber, onComplete, selectedL
     setLastLanguage(null);
     setPunctuationMistakes(0);
     setCheatingDetected(false);
-    setCharFrequency({});
     setWarningShown(false);
+    textareaRef.current?.focus();
+  };
 
-    // Cleanup on unmount or exercise change
+  const handleCheatingDetected = (message: string) => {
+    if (!warningShown) {
+      setWarningShown(true); 
+      alert(message);
+      resetExerciseState();
+    }
+  };
+
+  const detectSuspiciousPattern = (currentInput: string): boolean => {
+    // Check for repeated characters (5+ same chars)
+    const last5Chars = currentInput.slice(-5);
+    if (last5Chars.length === 5 && new Set(last5Chars).size === 1) {
+      handleCheatingDetected('⚠️ Please type the actual text, not the same character repeatedly!');
+      return true;
+    }
+
+    // Check for keyboard mashing patterns
+    const last20Chars = currentInput.slice(-20).toLowerCase();
+    const mashingPatterns = [
+      /[שדגכעיחלך]{8,}/,  // Hebrew keyboard mashing
+      /[שגדךלכחףךלדשגחכ]{8,}/,  // The exact pattern you mentioned
+      /[асдфжклэ]{8,}/,   // Russian keyboard mashing
+      /[asdfghjkl]{8,}/,  // English home row
+      /[qwertyuiop]{8,}/, // English top row
+      /[zxcvbnm]{8,}/,    // English bottom row
+      /[;lkjdfsa]{8,}/,   // Random semicolon patterns
+      /([שדגכ])\1{3,}/,   // Hebrew repeated patterns
+      /([асдф])\1{3,}/,   // Russian repeated patterns
+    ];
+
+    for (const pattern of mashingPatterns) {
+      if (pattern.test(last20Chars)) {
+        handleCheatingDetected('⚠️ Invalid typing detected! Please type the actual text. The exercise will restart.');
+        return true;
+      }
+    }
+
+    // Check for alternating two characters (ababab pattern)
+    if (last20Chars.length >= 6) {
+      const last6 = last20Chars.slice(-6);
+      if (last6[0] === last6[2] && last6[2] === last6[4] &&
+          last6[1] === last6[3] && last6[3] === last6[5] &&
+          last6[0] !== last6[1]) {
+        handleCheatingDetected('⚠️ Please type the actual text, not random patterns!');
+        return true;
+      }
+    }
+
+    // Check if no real words in last 30 characters
+    const last30 = currentInput.slice(-30);
+    const hasVowels = /[aeiouאהוי]/i.test(last30);
+    const hasConsonants = /[bcdfghjklmnpqrstvwxyzבגדזחטכלמנספצקרשת]/i.test(last30);
+    
+    if (last30.length >= 20 && (!hasVowels || !hasConsonants)) {
+      handleCheatingDetected('⚠️ Please type real words from the text!');
+      return true;
+    }
+
+    return false;
+  };
+
+  const detectLanguage = (char: string): 'hebrew' | 'arabic' | 'english' | 'russian' | null => {
+    if (/[א-ת]/.test(char)) return 'hebrew';
+    if (/[\u0600-\u06FF]/.test(char)) return 'arabic';
+    if (/[а-яА-Я]/.test(char)) return 'russian';
+    if (/[a-zA-Z]/.test(char)) return 'english';
+    return null;
+  };
+
+  const checkLanguageConsistency = (newValue: string) => {
+    const chars = newValue.slice(-5).split('');
+    let wrongLangChars = 0;
+    
+    const expectedLangs = selectedLanguage.split('-').map(l => l.toLowerCase());
+    
+    for (const char of chars) {
+      const charLang = detectLanguage(char);
+      if (charLang) {
+        const isWrongLang = !expectedLangs.includes(charLang);
+        if (isWrongLang) {
+          wrongLangChars++;
+        }
+      }
+    }
+    
+    if (wrongLangChars >= 5) {
+      handleCheatingDetected('⚠️ Wrong language detected! Please type in the correct languages. The exercise will restart.');
+    }
+  };
+
+  useEffect(() => {
+    resetExerciseState();
     return cleanup;
   }, [exerciseNumber]);
 
   useEffect(() => {
-    // Create handlers
     pasteHandler.current = (e: ClipboardEvent) => {
       e.preventDefault();
-      setCheatingDetected(true);
-      if (!warningShown) {
-        alert('⚠️ Copy/Paste is not allowed! Please type the text manually.');
-        setWarningShown(true);
-      }
+      handleCheatingDetected('⚠️ Copy/Paste is not allowed! Please type the text manually.');
       return false;
     };
     
@@ -205,64 +240,12 @@ const TypingExercise: React.FC<Props> = ({ exerciseNumber, onComplete, selectedL
       return false;
     };
 
-    // Add event listeners
     document.addEventListener('paste', pasteHandler.current);
     document.addEventListener('copy', copyHandler.current);
     document.addEventListener('cut', cutHandler.current);
 
-    // Cleanup on unmount
     return cleanup;
-  }, [warningShown]);
-
-  const detectLanguage = (char: string): 'hebrew' | 'arabic' | 'english' | 'russian' | 'hindi' | 'french' | 'japanese' | 'korean' | null => {
-    if (/[א-ת]/.test(char)) return 'hebrew';
-    if (/[\u0600-\u06FF]/.test(char)) return 'arabic';
-    if (/[а-яА-Я]/.test(char)) return 'russian';
-    if (/[\u0900-\u097F]/.test(char)) return 'hindi';
-    if (/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(char)) return 'japanese';
-    if (/[\uAC00-\uD7AF]/.test(char)) return 'korean';
-    if (/[àâäçèéêëîïôùûü]/.test(char.toLowerCase())) return 'french';
-    if (/[a-zA-Z]/.test(char)) return 'english';
-    return null;
-  };
-
-  const detectCheating = (newChar: string, currentInput: string) => {
-    // Track character frequency
-    const updatedFrequency = {...charFrequency};
-    updatedFrequency[newChar] = (updatedFrequency[newChar] || 0) + 1;
-    setCharFrequency(updatedFrequency);
-    
-    // Check for patterns that indicate cheating
-    const totalChars = Object.values(updatedFrequency).reduce((a, b) => a + b, 0);
-    const maxFrequency = Math.max(...Object.values(updatedFrequency));
-    
-    // If one character appears more than 30% of the time, it's suspicious
-    if (totalChars > 20 && maxFrequency / totalChars > 0.3) {
-      setCheatingDetected(true);
-      if (!warningShown) {
-        alert('⚠️ Suspicious typing pattern detected! Please type the actual text, not random characters.');
-        setWarningShown(true);
-      }
-    }
-    
-    // Check if typing speed is unrealistic (over 200 WPM)
-    const timeInMinutes = Math.max(0.01, (Date.now() - startTime) / 60000);
-    const words = currentInput.split(/\s+/).filter(w => w.length > 0).length;
-    const wpm = words / timeInMinutes;
-    if (wpm > 200 && words > 10) {
-      setCheatingDetected(true);
-    }
-    
-    // Check for repetitive patterns (same key pressed many times)
-    const last5Chars = currentInput.slice(-5);
-    if (last5Chars.length === 5 && new Set(last5Chars).size === 1) {
-      setCheatingDetected(true);
-      if (!warningShown) {
-        alert('⚠️ Please type the actual text, not the same character repeatedly!');
-        setWarningShown(true);
-      }
-    }
-  };
+  }, []);
 
   const isPunctuationConfusion = (expected: string, actual: string): boolean => {
     return punctuationConfusions.some(([a, b]) => 
@@ -286,17 +269,14 @@ const TypingExercise: React.FC<Props> = ({ exerciseNumber, onComplete, selectedL
       if (expected !== actual) {
         let errorType: 'language' | 'punctuation' | 'typo' = 'typo';
         
-        // Check for language switching errors
         const expectedLang = detectLanguage(expected);
         const actualLang = detectLanguage(actual);
         
         if (expectedLang && actualLang && expectedLang !== actualLang) {
           errorType = 'language';
         }
-        // Check for punctuation errors including confusion patterns
         else if (/[.,!?;:\-(){}[\]"'•%/\\–_]/.test(expected) || /[.,!?;:\-(){}[\]"'•%/\\–_]/.test(actual)) {
           errorType = 'punctuation';
-          // Track if it's a common confusion
           if (isPunctuationConfusion(expected, actual)) {
             localPunctuationMistakes++;
           }
@@ -312,27 +292,24 @@ const TypingExercise: React.FC<Props> = ({ exerciseNumber, onComplete, selectedL
       }
     }
 
-    // Update punctuation mistakes count
     setPunctuationMistakes(localPunctuationMistakes);
-
     return errors;
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    if (warningShown) return;
+    
     const newValue = e.target.value;
     const oldValue = userInput;
     const currentTime = Date.now();
     const delay = currentTime - lastKeystrokeTime;
 
     if (newValue.length < oldValue.length) {
-      // User deleted characters
       setDeletions(prev => prev + (oldValue.length - newValue.length));
       
-      // Check if the deletion fixed any mistakes
       const oldErrors = detectErrors(oldValue);
       const newErrors = detectErrors(newValue);
       
-      // Find positions that were errors in old but not in new
       const oldErrorPositions = new Set(oldErrors.map(e => e.position));
       const newErrorPositions = new Set(newErrors.map(e => e.position));
       
@@ -344,11 +321,12 @@ const TypingExercise: React.FC<Props> = ({ exerciseNumber, onComplete, selectedL
     }
 
     if (newValue.length > oldValue.length) {
+      // Check for suspicious patterns first
+      if (detectSuspiciousPattern(newValue)) {
+        return;
+      }
+
       const newChar = newValue.slice(-1);
-      
-      // Detect cheating
-      detectCheating(newChar, newValue);
-      
       const currentLang = detectLanguage(newChar);
       
       if (currentLang && lastLanguage && currentLang !== lastLanguage) {
@@ -366,6 +344,9 @@ const TypingExercise: React.FC<Props> = ({ exerciseNumber, onComplete, selectedL
       if (expectedChar && normalizedNew[position] !== expectedChar) {
         setAllMistakes(prev => new Set(prev).add(position));
       }
+      
+      // Check for wrong language
+      checkLanguageConsistency(newValue);
     }
 
     setKeystrokes(prev => [...prev, {
@@ -386,18 +367,15 @@ const TypingExercise: React.FC<Props> = ({ exerciseNumber, onComplete, selectedL
     const languageErrors = errors.filter(e => e.type === 'language').length;
     const punctuationErrors = errors.filter(e => e.type === 'punctuation').length;
     
-    // Calculate corrections properly - FIXED
     const corrections = correctedMistakes.size;
     
-    // STRICTER WPM calculation - remove bonus
     const timeInMinutes = Math.max(0.1, (Date.now() - startTime) / 60000);
     const words = normalizedInput.split(/\s+/).filter(w => w.length > 0).length;
     const rawWPM = words / timeInMinutes;
     
-    // Apply penalty for cheating
-    let wpm = Math.round(rawWPM);
+    let wpm = Math.round(rawWPM * 0.85);
     if (cheatingDetected) {
-      wpm = Math.max(0, Math.round(wpm * 0.3)); // Heavy penalty for cheating
+      wpm = Math.max(0, Math.round(wpm * 0.3));
     }
     wpm = Math.max(0, Math.min(150, wpm));
     
@@ -405,7 +383,6 @@ const TypingExercise: React.FC<Props> = ({ exerciseNumber, onComplete, selectedL
     const correctChars = Math.max(0, totalChars - errors.length);
     let accuracy = totalChars > 0 ? Math.round((correctChars / totalChars) * 100) : 100;
     
-    // Penalty for cheating
     if (cheatingDetected) {
       accuracy = Math.max(0, accuracy - 30);
     }
@@ -415,15 +392,14 @@ const TypingExercise: React.FC<Props> = ({ exerciseNumber, onComplete, selectedL
       ? Math.round(validDelays.reduce((a, b) => a + b, 0) / validDelays.length)
       : 0;
     
-    // STRICTER frustration score calculation
     const frustrationFactors = [
-      Math.min(3, errors.length * 0.25),
-      Math.min(3, allMistakes.size * 0.15),
-      Math.min(2, deletions * 0.15),
-      Math.min(1, corrections * 0.05),
-      Math.min(1, languageSwitches * 0.1),
-      Math.min(1, punctuationMistakes * 0.2),
-      averageDelay > 3000 ? 2 : (averageDelay > 2000 ? 1 : 0),
+      Math.min(2, errors.length * 0.15),
+      Math.min(2, allMistakes.size * 0.1),
+      Math.min(1.5, deletions * 0.1),
+      Math.min(1, corrections * 0.03),
+      Math.min(1.5, languageSwitches * 0.15),
+      Math.min(1, punctuationMistakes * 0.15),
+      averageDelay > 3000 ? 1.5 : (averageDelay > 2000 ? 0.75 : 0),
       cheatingDetected ? 3 : 0
     ];
     
@@ -436,7 +412,7 @@ const TypingExercise: React.FC<Props> = ({ exerciseNumber, onComplete, selectedL
       languageErrors,
       punctuationErrors,
       deletions,
-      corrections,  // Now properly calculated
+      corrections,
       languageSwitches,
       averageDelay,
       frustrationScore,
@@ -450,24 +426,18 @@ const TypingExercise: React.FC<Props> = ({ exerciseNumber, onComplete, selectedL
   const handleComplete = () => {
     const metrics = calculateMetrics();
     
-    // Check minimum completion
     const normalizedInput = normalizeText(userInput);
     if (normalizedInput.length < normalizedExerciseText.length * 0.5) {
       alert('Please type at least 50% of the text to continue.');
       return;
     }
     
-    // Check for extreme cheating
     if (cheatingDetected && metrics.accuracy < 50) {
       alert('⚠️ Invalid test detected! Please restart and type the actual text.');
-      setUserInput('');
-      setCheatingDetected(false);
-      setCharFrequency({});
-      setCorrectedMistakes(new Set());
+      resetExerciseState();
       return;
     }
     
-    // Cleanup before completing
     cleanup();
     
     onComplete({
@@ -501,8 +471,14 @@ const TypingExercise: React.FC<Props> = ({ exerciseNumber, onComplete, selectedL
           className = 'text-green-600';
           style = { fontWeight: 'bold' };
         } else {
-          className = 'text-red-600 bg-red-50';
-          style = { fontWeight: 'bold' };
+          // Enhanced error highlighting with light red background
+          className = 'text-red-600';
+          style = { 
+            fontWeight: 'bold',
+            backgroundColor: '#FEE2E2',
+            padding: '0 2px',
+            borderRadius: '2px'
+          };
         }
       }
       
@@ -521,8 +497,8 @@ const TypingExercise: React.FC<Props> = ({ exerciseNumber, onComplete, selectedL
   const progress = Math.min(100, (normalizeText(userInput).length / normalizedExerciseText.length) * 100);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-3">
-      <div className="bg-white rounded-2xl shadow-xl p-4 max-w-6xl w-full">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-2">
+      <div className="bg-white rounded-xl shadow-xl p-4 max-w-6xl w-full" style={{ maxHeight: '95vh' }}>
         <h2 className="text-lg font-bold text-gray-800 mb-2">{exercise.title}</h2>
         
         {cheatingDetected && (
@@ -543,7 +519,7 @@ const TypingExercise: React.FC<Props> = ({ exerciseNumber, onComplete, selectedL
           <p className="text-xs text-gray-600 mt-1">Progress: {Math.round(progress)}%</p>
         </div>
 
-        <div className="mb-2 p-3 bg-gray-50 rounded-lg max-h-40 overflow-y-auto" dir={isRTL ? 'rtl' : 'ltr'}>
+        <div className="mb-3 p-3 bg-gray-50 rounded-lg" style={{ maxHeight: '35vh', overflowY: 'auto' }} dir={isRTL ? 'rtl' : 'ltr'}>
           <p className="font-mono text-sm leading-relaxed whitespace-pre-wrap">
             {renderTextComparison()}
           </p>
@@ -559,8 +535,7 @@ const TypingExercise: React.FC<Props> = ({ exerciseNumber, onComplete, selectedL
             onChange={handleInputChange}
             onPaste={(e) => {
               e.preventDefault();
-              setCheatingDetected(true);
-              alert('⚠️ Paste is not allowed! Please type manually.');
+              handleCheatingDetected('⚠️ Paste is not allowed! Please type manually.');
             }}
             onCopy={(e) => e.preventDefault()}
             onCut={(e) => e.preventDefault()}
@@ -577,7 +552,7 @@ const TypingExercise: React.FC<Props> = ({ exerciseNumber, onComplete, selectedL
         </div>
 
         <div className="flex justify-between items-center">
-          <div className="text-xs text-gray-500">
+          <div className="text-sm text-gray-500">
             <span>Characters: {normalizeText(userInput).length} / {normalizedExerciseText.length}</span>
           </div>
           
