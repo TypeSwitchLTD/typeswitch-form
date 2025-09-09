@@ -12,22 +12,24 @@ import ShareCard from './components/ShareCard';
 import AdminDashboard from './components/AdminDashboard';
 import { saveSurveyData, saveEmailSubscription } from './lib/supabase';
 
-// Centralized scoring function
+// Centralized scoring function with reduced WPM emphasis
 export const calculateOverallScore = (metrics: TypingMetrics): number => {
   let score = 100;
   
-  if (metrics.wpm < 20) score -= 30;
-  else if (metrics.wpm < 30) score -= 25;
-  else if (metrics.wpm < 40) score -= 18;
-  else if (metrics.wpm < 50) score -= 10;
-  else if (metrics.wpm < 60) score -= 5;
+  // Reduced WPM penalty by 25%
+  if (metrics.wpm < 20) score -= 22;
+  else if (metrics.wpm < 30) score -= 19;
+  else if (metrics.wpm < 40) score -= 13;
+  else if (metrics.wpm < 50) score -= 7;
+  else if (metrics.wpm < 60) score -= 3;
   
-  if (metrics.accuracy < 70) score -= 30;
-  else if (metrics.accuracy < 80) score -= 25;
-  else if (metrics.accuracy < 85) score -= 20;
-  else if (metrics.accuracy < 90) score -= 15;
-  else if (metrics.accuracy < 95) score -= 10;
-  else if (metrics.accuracy < 98) score -= 5;
+  // Increased emphasis on accuracy
+  if (metrics.accuracy < 70) score -= 35;
+  else if (metrics.accuracy < 80) score -= 28;
+  else if (metrics.accuracy < 85) score -= 22;
+  else if (metrics.accuracy < 90) score -= 17;
+  else if (metrics.accuracy < 95) score -= 12;
+  else if (metrics.accuracy < 98) score -= 6;
   
   if (metrics.languageSwitches > 20) score -= 15;
   else if (metrics.languageSwitches > 15) score -= 12;
@@ -53,11 +55,11 @@ export const getScoreBreakdown = (metrics: TypingMetrics) => {
   let totalPenalty = 0;
   
   let wpmPenalty = 0;
-  if (metrics.wpm < 20) wpmPenalty = 30;
-  else if (metrics.wpm < 30) wpmPenalty = 25;
-  else if (metrics.wpm < 40) wpmPenalty = 18;
-  else if (metrics.wpm < 50) wpmPenalty = 10;
-  else if (metrics.wpm < 60) wpmPenalty = 5;
+  if (metrics.wpm < 20) wpmPenalty = 22;
+  else if (metrics.wpm < 30) wpmPenalty = 19;
+  else if (metrics.wpm < 40) wpmPenalty = 13;
+  else if (metrics.wpm < 50) wpmPenalty = 7;
+  else if (metrics.wpm < 60) wpmPenalty = 3;
   
   if (wpmPenalty > 0) {
     breakdown.push({
@@ -69,12 +71,12 @@ export const getScoreBreakdown = (metrics: TypingMetrics) => {
   }
   
   let accuracyPenalty = 0;
-  if (metrics.accuracy < 70) accuracyPenalty = 30;
-  else if (metrics.accuracy < 80) accuracyPenalty = 25;
-  else if (metrics.accuracy < 85) accuracyPenalty = 20;
-  else if (metrics.accuracy < 90) accuracyPenalty = 15;
-  else if (metrics.accuracy < 95) accuracyPenalty = 10;
-  else if (metrics.accuracy < 98) accuracyPenalty = 5;
+  if (metrics.accuracy < 70) accuracyPenalty = 35;
+  else if (metrics.accuracy < 80) accuracyPenalty = 28;
+  else if (metrics.accuracy < 85) accuracyPenalty = 22;
+  else if (metrics.accuracy < 90) accuracyPenalty = 17;
+  else if (metrics.accuracy < 95) accuracyPenalty = 12;
+  else if (metrics.accuracy < 98) accuracyPenalty = 6;
   
   if (accuracyPenalty > 0) {
     breakdown.push({
@@ -146,9 +148,9 @@ function App() {
   const [surveyId, setSurveyId] = useState<string | null>(null);
   const [discountCode] = useState(`TYPE${Math.random().toString(36).substr(2, 6).toUpperCase()}`);
   const [isSaving, setIsSaving] = useState(false);
+  const [fadeIn, setFadeIn] = useState(true);
   const saveAttempted = useRef(false);
   
-  // Admin click tracking
   const adminClickCount = useRef(0);
   const adminClickTimer = useRef<NodeJS.Timeout | null>(null);
   const lastClickTime = useRef<number>(0);
@@ -192,6 +194,10 @@ function App() {
     if (currentScreen === 0 && !(window as any).surveyStartTime) {
       (window as any).surveyStartTime = Date.now();
     }
+    
+    // Fade in animation
+    setFadeIn(false);
+    setTimeout(() => setFadeIn(true), 50);
   }, [currentScreen]);
 
   const saveToDatabase = async (dataToSave: SurveyData) => {
@@ -204,8 +210,6 @@ function App() {
     saveAttempted.current = true;
     
     console.log('Attempting to save survey data...');
-    console.log('Current survey data:', dataToSave);
-    console.log('Purchase decision data:', dataToSave.purchaseDecision);
     
     try {
       const result = await saveSurveyData(dataToSave, discountCode);
@@ -235,10 +239,8 @@ function App() {
     setIsLoading(true);
     
     try {
-      // Create updated survey data
       let updatedSurveyData = { ...surveyData };
       
-      // Update survey data with new information
       if (data) {
         if (data.exercises && data.exercises.length > 0) {
           const exercise = data.exercises[0];
@@ -272,18 +274,13 @@ function App() {
         }
       }
       
-      // Update state with the new data
       setSurveyData(updatedSurveyData);
       
-      // Save after purchase decision screen (screen 7)
       if (currentScreen === 7 && !saveAttempted.current) {
-        console.log('Saving after purchase decision with data:', updatedSurveyData.purchaseDecision);
-        
-        // Use the updated data directly for saving
+        console.log('Saving after purchase decision...');
         const saveResult = await saveToDatabase(updatedSurveyData);
         if (!saveResult.success) {
           console.error('Failed to save but continuing');
-          // Don't block the user from continuing even if save failed
         }
       }
       
@@ -310,8 +307,6 @@ function App() {
     lastClickTime.current = currentTime;
     adminClickCount.current++;
     
-    console.log('Admin click:', adminClickCount.current);
-    
     if (adminClickTimer.current) {
       clearTimeout(adminClickTimer.current);
     }
@@ -321,7 +316,6 @@ function App() {
     }, 2000);
     
     if (adminClickCount.current >= 5) {
-      console.log('Opening admin...');
       adminClickCount.current = 0;
       
       if (adminClickTimer.current) {
@@ -333,7 +327,6 @@ function App() {
       if (username === 'Miki$123456') {
         const password = prompt('Admin Password:');
         if (password === 'Miki$123456') {
-          console.log('Admin authenticated');
           setShowAdmin(true);
         } else {
           alert('Invalid password');
@@ -353,7 +346,6 @@ function App() {
         if (result.success && result.id) {
           await saveEmailSubscription(email, result.id);
         } else {
-          console.error('Could not save email - no survey ID');
           setSurveyData(prev => ({ ...prev, email }));
         }
       } else {
@@ -372,7 +364,6 @@ function App() {
     };
   }, []);
 
-  // Show admin dashboard if authenticated
   if (showAdmin) {
     return (
       <AdminDashboard 
@@ -383,7 +374,6 @@ function App() {
     );
   }
 
-  // Error screen
   if (error && currentScreen !== screens.length - 1) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-8">
@@ -423,7 +413,6 @@ function App() {
     );
   }
 
-  // Loading screen
   if (isLoading && screens[currentScreen] === 'thankYou') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
@@ -435,12 +424,11 @@ function App() {
     );
   }
 
-  // Share card
   if (showShareCard) {
     return <ShareCard 
       metrics={surveyData.metrics} 
       onClose={() => setShowShareCard(false)} 
-      selectedLanguage={surveyData.demographics.languages?.[0] || 'Arabic-English'}
+      selectedLanguage={surveyData.demographics.languages?.[0] || 'Hebrew-English'}
     />;
   }
 
@@ -456,37 +444,37 @@ function App() {
       
       case 'beforeExercise':
         return (
-          <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-8">
-            <div className="bg-white rounded-2xl shadow-xl p-8 max-w-2xl">
-              <div className="mb-6 text-center">
-                <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+            <div className={`bg-white rounded-xl shadow-xl p-6 max-w-lg transition-opacity duration-300 ${fadeIn ? 'opacity-100' : 'opacity-0'}`}>
+              <div className="mb-4 text-center">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                   </svg>
                 </div>
-                <h2 className="text-3xl font-bold text-gray-800 mb-2">Ready for the Typing Exercise?</h2>
-                <p className="text-gray-600">Just 1 quick exercise to understand your typing patterns</p>
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">Ready for the Typing Exercise?</h2>
+                <p className="text-gray-600 text-sm">Just 1 quick exercise to understand your typing patterns</p>
               </div>
               
-              <div className="space-y-4 text-lg text-gray-700">
+              <div className="space-y-3 text-sm text-gray-700">
                 <p className="font-semibold">We'll measure automatically:</p>
-                <ul className="list-disc list-inside space-y-2 ml-4">
+                <ul className="list-disc list-inside space-y-1 ml-4 text-gray-600">
                   <li>Typing errors and corrections</li>
                   <li>Time to find punctuation marks</li>
                   <li>How many times you delete and fix</li>
                   <li>Language switching patterns</li>
                 </ul>
                 
-                <div className="bg-yellow-50 rounded-lg p-4 mt-6">
-                  <p className="text-yellow-800 font-medium">
-                    Tip: Just 1 exercise! Type naturally as you normally would - don't try to be perfect!
+                <div className="bg-yellow-50 rounded-lg p-3 mt-4">
+                  <p className="text-yellow-800 font-medium text-sm">
+                    💡 Tip: Type naturally as you normally would - don't try to be perfect!
                   </p>
                 </div>
               </div>
               
               <button
                 onClick={() => handleNext()}
-                className="mt-8 w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition"
+                className="mt-5 w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-semibold text-sm hover:bg-blue-700 transition"
               >
                 Start the Exercise
               </button>
@@ -499,7 +487,7 @@ function App() {
           <TypingExercise 
             exerciseNumber={1} 
             onComplete={handleNext}
-            selectedLanguage={surveyData.demographics.languages?.[0] || 'Arabic-English'}
+            selectedLanguage={surveyData.demographics.languages?.[0] || 'Hebrew-English'}
           />
         );
       
@@ -528,20 +516,21 @@ function App() {
         />;
       
       default:
-        console.error('Unknown screen:', screenName);
         return <WelcomeScreen onNext={handleNext} onAdminClick={handleAdminClick} />;
     }
   };
 
   return (
     <div className="min-h-screen">
-      {renderScreen()}
+      <div className={`transition-opacity duration-300 ${fadeIn ? 'opacity-100' : 'opacity-0'}`}>
+        {renderScreen()}
+      </div>
       
       {/* Progress bar */}
       {currentScreen > 0 && currentScreen < screens.length - 1 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg p-2 z-40">
+        <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg p-1 z-40">
           <div className="max-w-4xl mx-auto">
-            <div className="flex justify-between items-center mb-1">
+            <div className="flex justify-between items-center mb-0.5">
               <span className="text-xs text-gray-600">
                 Step {currentScreen} of {screens.length - 1}
               </span>
@@ -549,9 +538,9 @@ function App() {
                 {Math.round(((currentScreen) / (screens.length - 1)) * 100)}% Complete
               </span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-gray-200 rounded-full h-1.5">
               <div 
-                className="bg-gradient-to-r from-blue-600 to-purple-600 h-2 rounded-full transition-all duration-500"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 h-1.5 rounded-full transition-all duration-500"
                 style={{ width: `${((currentScreen) / (screens.length - 1)) * 100}%` }}
               />
             </div>
