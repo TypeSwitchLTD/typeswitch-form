@@ -7,23 +7,23 @@ interface Props {
   selectedLanguage?: string;
 }
 
-// NOTE: I've moved the scoring logic directly into this file.
-// This makes the component self-contained and avoids issues with imports.
 const calculateOverallScore = (metrics: TypingMetrics): number => {
   let score = 100;
   
-  if (metrics.wpm < 20) score -= 30;
-  else if (metrics.wpm < 30) score -= 25;
-  else if (metrics.wpm < 40) score -= 18;
-  else if (metrics.wpm < 50) score -= 10;
-  else if (metrics.wpm < 60) score -= 5;
+  // Reduced WPM penalty by 25%
+  if (metrics.wpm < 20) score -= 22;
+  else if (metrics.wpm < 30) score -= 19;
+  else if (metrics.wpm < 40) score -= 13;
+  else if (metrics.wpm < 50) score -= 7;
+  else if (metrics.wpm < 60) score -= 3;
   
-  if (metrics.accuracy < 70) score -= 30;
-  else if (metrics.accuracy < 80) score -= 25;
-  else if (metrics.accuracy < 85) score -= 20;
-  else if (metrics.accuracy < 90) score -= 15;
-  else if (metrics.accuracy < 95) score -= 10;
-  else if (metrics.accuracy < 98) score -= 5;
+  // Increased emphasis on accuracy
+  if (metrics.accuracy < 70) score -= 35;
+  else if (metrics.accuracy < 80) score -= 28;
+  else if (metrics.accuracy < 85) score -= 22;
+  else if (metrics.accuracy < 90) score -= 17;
+  else if (metrics.accuracy < 95) score -= 12;
+  else if (metrics.accuracy < 98) score -= 6;
   
   if (metrics.languageSwitches > 20) score -= 15;
   else if (metrics.languageSwitches > 15) score -= 12;
@@ -50,64 +50,34 @@ const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebr
   const [imageUrl, setImageUrl] = useState<string>('');
   const [copySuccess, setCopySuccess] = useState('');
 
-  // Calculate the final score using the logic from App.tsx
   const finalScore = calculateOverallScore(metrics);
 
   const shareTexts = {
     'Hebrew-English': {
       postLine1: 'עשיתי את מבחן ההקלדה של TypeSwitch.',
       postLine2: 'מסתבר שרמת ההקלדה שלי היא "{scoreLevel}" עם ציון כללי של {finalScore}/100.',
-      postCta: '💡 בואו לבדוק את עצמכם ולעזור למחקר! כל תשובה עוזרת + 25% הנחה.',
+      postCta: '💡 בואו לבדוק את עצמכם ולעזור למחקר! כל תשובה עוזרת + 15% הנחה מיידית.',
       copyMessage: '✅ הטקסט הועתק! פשוט הדבק (Ctrl+V) אותו בפוסט.',
       isRTL: true
     },
     'Russian-English': {
       postLine1: 'Я прошёл тест на скорость печати от TypeSwitch.',
       postLine2: 'Оказывается, мой уровень — "{scoreLevel}" с общим баллом {finalScore}/100.',
-      postCta: '💡 Проверьте себя и помогите исследованию! + 25% скидка.',
+      postCta: '💡 Проверьте себя и помогите исследованию! + 15% скидка сразу.',
       copyMessage: '✅ Текст скопирован! Просто вставьте (Ctrl+V) его в пост.',
       isRTL: false
     },
     'Arabic-English': {
       postLine1: 'لقد أجريت اختبار الكتابة من TypeSwitch.',
       postLine2: 'اتضح أن مستواي هو "{scoreLevel}" بنتيجة إجمالية {finalScore}/100.',
-      postCta: '💡 اختبروا أنفسكم وساعدوا في البحث! كل إجابة تساعد + خصم 25%.',
+      postCta: '💡 اختبروا أنفسكم وساعدوا في البحث! كل إجابة تساعد + خصم 15% فوري.',
       copyMessage: '✅ تم نسخ النص! فقط قم بلصقه (Ctrl+V) في المنشور.',
       isRTL: true
-    },
-    'Hindi-English': {
-      postLine1: 'मैंने TypeSwitch टाइपिंग टेस्ट दिया।',
-      postLine2: 'पता चला कि मेरा स्तर "{scoreLevel}" है और कुल स्कोर {finalScore}/100 है।',
-      postCta: '💡 खुद को परखें और रिसर्च में मदद करें! आपकी मदद + 25% छूट।',
-      copyMessage: '✅ टेक्स्ट कॉपी हो गया! बस इसे पोस्ट में पेस्ट (Ctrl+V) करें।',
-      isRTL: false
-    },
-    'French-English': {
-      postLine1: "J'ai passé le test de dactylographie de TypeSwitch.",
-      postLine2: 'Il s\'avère que mon niveau est "{scoreLevel}" avec un score global de {finalScore}/100.',
-      postCta: '💡 Testez-vous et aidez la recherche ! + 25% de réduction.',
-      copyMessage: '✅ Texte copié ! Il suffit de le coller (Ctrl+V) dans la publication.',
-      isRTL: false
-    },
-    'Japanese-English': {
-      postLine1: 'TypeSwitchのタイピングテストを受けました。',
-      postLine2: '私のレベルは「{scoreLevel}」で、総合スコアは{finalScore}/100でした。',
-      postCta: '💡 あなたもテストして研究にご協力ください！+ 25%割引。',
-      copyMessage: '✅ テキストをコピーしました！投稿に貼り付け（Ctrl+V）てください。',
-      isRTL: false
-    },
-    'Korean-English': {
-      postLine1: 'TypeSwitch 타이핑 테스트를 해봤어요.',
-      postLine2: '제 수준은 "{scoreLevel}"이고, 총 점수는 {finalScore}/100점입니다.',
-      postCta: '💡 여러분도 테스트해보고 연구에 도움을 주세요! + 25% 할인.',
-      copyMessage: '✅ 텍스트가 복사되었습니다! 게시물에 붙여넣기(Ctrl+V)하세요.',
-      isRTL: false
     }
   };
 
   const currentText = shareTexts[selectedLanguage] || shareTexts['Hebrew-English'];
   
-  // NEW: Encouraging titles based on final score
   const getScoreLevelInfo = (score: number) => {
     if (score >= 85) return { level: 'Excellent!', color: '#22C55E', gradient: ['#6EE7B7', '#3B82F6'] };
     if (score >= 70) return { level: 'Good', color: '#3B82F6', gradient: ['#93C5FD', '#8B5CF6'] };
@@ -129,7 +99,6 @@ const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebr
     canvas.width = 800;
     canvas.height = 1000;
     
-    // NEW: Dynamic gradient background based on score
     const gradient = ctx.createLinearGradient(0, 0, 800, 1000);
     gradient.addColorStop(0, scoreLevelInfo.gradient[0]);
     gradient.addColorStop(1, scoreLevelInfo.gradient[1]);
@@ -139,26 +108,19 @@ const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebr
     ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
     roundRect(ctx, 40, 40, 720, 920, 20);
     ctx.fill();
-    if (currentText.isRTL) {
-      ctx.direction = 'rtl';
-    }
     
-    // --- Drawing content on the canvas ---
     let yPos = 120;
 
-    // NEW: Main Title (The encouraging level)
     ctx.font = 'bold 52px system-ui, -apple-system, sans-serif';
     ctx.fillStyle = scoreLevelInfo.color;
     ctx.textAlign = 'center';
     ctx.fillText(scoreLevelInfo.level, 400, yPos);
     
-    // NEW: Subtitle with final score
     yPos += 70;
     ctx.font = 'bold 32px system-ui, -apple-system, sans-serif';
     ctx.fillStyle = '#374151';
     ctx.fillText(`Overall Score: ${finalScore}/100`, 400, yPos);
 
-    // Key metrics section
     yPos += 100;
     const stats = [
       { label: 'Speed (WPM)', value: metrics.wpm },
@@ -180,7 +142,6 @@ const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebr
       xPos += 220;
     });
 
-    // Frustration bar
     yPos += 150;
     ctx.fillStyle = 'rgba(239, 68, 68, 0.05)';
     roundRect(ctx, 100, yPos, 600, 80, 15);
@@ -203,21 +164,22 @@ const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebr
     ctx.textAlign = 'center';
     ctx.fillText(`${metrics.frustrationScore}/10`, 320 + (barWidth > 360 ? 360: barWidth)/2, yPos + 46);
     
-    // CTA Section
     yPos += 150;
     const shareUrl = "typeswitch.io";
     ctx.fillStyle = 'rgba(147, 51, 234, 0.1)';
     roundRect(ctx, 60, yPos, 680, 200, 20);
     ctx.fill();
     ctx.fillStyle = '#7C3AED';
-    ctx.font = 'bold 28px system-ui, -apple-system, sans-serif';
+    ctx.font = 'bold 24px system-ui, -apple-system, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('Help build the best multilingual keyboard!', 400, yPos + 70);
+    ctx.fillText('Help build the best multilingual keyboard!', 400, yPos + 60);
+    ctx.fillStyle = '#EF4444';
+    ctx.font = 'bold 28px system-ui, -apple-system, sans-serif';
+    ctx.fillText('Get 15% OFF + 10% with email!', 400, yPos + 100);
     ctx.fillStyle = '#3B82F6';
     ctx.font = '36px system-ui, -apple-system, sans-serif';
-    ctx.fillText(shareUrl, 400, yPos + 130);
+    ctx.fillText(shareUrl, 400, yPos + 150);
     
-    // Footer
     ctx.fillStyle = '#4B5563';
     ctx.font = '16px system-ui, -apple-system, sans-serif';
     ctx.textAlign = 'center';
@@ -228,7 +190,6 @@ const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebr
     setIsGenerating(false);
   };
   
-  // Helper to draw rounded rectangles (no changes)
   const roundRect = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) => {
     ctx.beginPath();
     ctx.moveTo(x + radius, y);
@@ -250,7 +211,6 @@ const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebr
     a.click();
   };
 
-  // Build the text for sharing, now with the final score
   const buildPostText = () => {
     const postLine2WithScore = currentText.postLine2
       .replace('{scoreLevel}', scoreLevelInfo.level)
@@ -271,7 +231,7 @@ const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebr
     const siteUrl = 'https://typeswitch.io';
 
     navigator.clipboard.writeText(postText).then(() => {
-      setCopySuccess(currentText.copyMessage); // Use translated message
+      setCopySuccess(currentText.copyMessage);
     }).catch(err => {
       console.error('Failed to copy text:', err);
     });
@@ -313,9 +273,9 @@ const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebr
             <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-6 mb-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-3 text-center">Your results will include:</h3>
               <ul className="space-y-2 text-gray-700">
-                <li className="flex items-center"><span className="text-green-500 mr-2">✓</span>Your final score and title</li>
-                <li className="flex items-center"><span className="text-green-500 mr-2">✓</span>Your typing speed and accuracy</li>
-                <li className="flex items-center"><span className="text-green-500 mr-2">✓</span>A beautiful shareable image with all the info</li>
+                <li className="flex items-center"><span className="text-green-500 mr-2">✔</span>Your final score and title</li>
+                <li className="flex items-center"><span className="text-green-500 mr-2">✔</span>Your typing speed and accuracy</li>
+                <li className="flex items-center"><span className="text-green-500 mr-2">✔</span>A shareable image with 15% + 10% discount offer</li>
               </ul>
             </div>
             <button onClick={generateImageWithCanvas} disabled={isGenerating} className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-6 rounded-lg font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition disabled:opacity-50 flex items-center justify-center">
@@ -360,25 +320,6 @@ const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebr
       </div>
     </div>
   );
-};
-
-// Helper function to wrap text on canvas (not used in the new design, but kept for safety)
-const wrapText = (context: CanvasRenderingContext2D, text: string, maxWidth: number): string[] => {
-    const words = text.split(' ');
-    const lines: string[] = [];
-    let currentLine = words[0];
-    for (let i = 1; i < words.length; i++) {
-        const word = words[i];
-        const width = context.measureText(currentLine + ' ' + word).width;
-        if (width < maxWidth) {
-            currentLine += ' ' + word;
-        } else {
-            lines.push(currentLine);
-            currentLine = word;
-        }
-    }
-    lines.push(currentLine);
-    return lines;
 };
 
 export default ShareCard;
