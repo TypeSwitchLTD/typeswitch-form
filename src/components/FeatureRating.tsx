@@ -59,8 +59,8 @@ const FeatureRating: React.FC<Props> = ({ onNext }) => {
     },
     { 
       id: 'volumeKnob', 
-      name: 'Rotary Encoder Knob',
-      description: 'Precision volume control, scrolling, or other functions',
+      name: 'Volume Control Knob',
+      description: 'Physical rotary knob for volume, scrolling, or other functions',
       icon: '🎛️'
     }
   ];
@@ -89,35 +89,35 @@ const FeatureRating: React.FC<Props> = ({ onNext }) => {
   const hasTopFeatures = topFeatures.length === 2;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-8">
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-4xl w-full">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-800 mb-2">Feature Evaluation</h2>
-          <p className="text-lg text-gray-600">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="bg-white rounded-xl shadow-xl p-5 max-w-3xl w-full">
+        <div className="text-center mb-4">
+          <h2 className="text-2xl font-bold text-gray-800 mb-1">Feature Evaluation</h2>
+          <p className="text-sm text-gray-600">
             How important are these features to you in your ideal keyboard?
           </p>
-          <p className="text-sm text-gray-500 mt-2">
-            Rate each feature from 1 (not important at all) to 5 (absolutely critical)
+          <p className="text-xs text-gray-500 mt-1">
+            Rate each feature from 1 (not important) to 5 (critical)
           </p>
         </div>
 
-        <div className="space-y-3 mb-8">
+        <div className="space-y-2 mb-4 max-h-64 overflow-y-auto">
           {features.map(feature => (
-            <div key={feature.id} className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition">
+            <div key={feature.id} className="bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition">
               <div className="flex items-start justify-between">
                 <div className="flex items-start flex-1">
-                  <span className="text-2xl mr-3 mt-1">{feature.icon}</span>
+                  <span className="text-xl mr-2 mt-0.5">{feature.icon}</span>
                   <div className="flex-1">
-                    <div className="font-semibold text-gray-800">{feature.name}</div>
-                    <div className="text-sm text-gray-600">{feature.description}</div>
+                    <div className="font-semibold text-sm text-gray-800">{feature.name}</div>
+                    <div className="text-xs text-gray-600">{feature.description}</div>
                   </div>
                 </div>
-                <div className="flex space-x-1 ml-4">
+                <div className="flex space-x-1 ml-2">
                   {[1, 2, 3, 4, 5].map(rating => (
                     <button
                       key={rating}
                       onClick={() => handleRating(feature.id, rating)}
-                      className={`w-12 h-12 rounded-full font-semibold transition transform hover:scale-110 ${
+                      className={`w-8 h-8 rounded-full font-semibold text-xs transition transform hover:scale-110 ${
                         ratings[feature.id] === rating
                           ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
                           : 'bg-gray-200 hover:bg-gray-300'
@@ -129,20 +129,17 @@ const FeatureRating: React.FC<Props> = ({ onNext }) => {
                 </div>
               </div>
               {!ratings[feature.id] && (
-                <div className="text-xs text-orange-500 mt-2 ml-11">Please rate this feature</div>
+                <div className="text-xs text-orange-500 mt-1 ml-8">Please rate</div>
               )}
             </div>
           ))}
         </div>
 
-        <div className="border-t pt-6">
-          <h3 className="text-xl font-semibold text-gray-800 mb-2 text-center">
-            Almost done! Select your TOP 2 must-have features:
+        <div className="border-t pt-4">
+          <h3 className="text-base font-semibold text-gray-800 mb-2 text-center">
+            Select your TOP 2 must-have features:
           </h3>
-          <p className="text-sm text-gray-600 text-center mb-4">
-            Which features would make you actually buy this keyboard?
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {features.map(feature => {
               const isSelected = topFeatures.includes(feature.id);
               const rank = topFeatures.indexOf(feature.id) + 1;
@@ -152,24 +149,21 @@ const FeatureRating: React.FC<Props> = ({ onNext }) => {
                   key={feature.id}
                   onClick={() => toggleTopFeature(feature.id)}
                   disabled={!isSelected && topFeatures.length >= 2}
-                  className={`p-4 rounded-lg transition text-left relative ${
+                  className={`p-3 rounded-lg transition text-left relative text-sm ${
                     isSelected
                       ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg transform scale-105'
                       : 'bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed'
                   }`}
                 >
                   {isSelected && (
-                    <span className="absolute top-2 right-2 bg-white text-blue-600 rounded-full w-8 h-8 flex items-center justify-center font-bold">
+                    <span className="absolute top-1 right-1 bg-white text-blue-600 rounded-full w-6 h-6 flex items-center justify-center font-bold text-xs">
                       #{rank}
                     </span>
                   )}
                   <div className="flex items-center">
-                    <span className="text-2xl mr-3">{feature.icon}</span>
-                    <div>
-                      <div className="font-semibold">{feature.name}</div>
-                      <div className={`text-xs mt-1 ${isSelected ? 'text-blue-100' : 'text-gray-500'}`}>
-                        {feature.description}
-                      </div>
+                    <span className="text-lg mr-2">{feature.icon}</span>
+                    <div className="font-semibold text-xs">
+                      {feature.name}
                     </div>
                   </div>
                 </button>
@@ -177,8 +171,8 @@ const FeatureRating: React.FC<Props> = ({ onNext }) => {
             })}
           </div>
           {!hasTopFeatures && (
-            <p className="text-sm text-orange-600 mt-3 text-center">
-              Please select {2 - topFeatures.length} more feature{topFeatures.length === 1 ? '' : 's'}
+            <p className="text-xs text-orange-600 mt-2 text-center">
+              Select {2 - topFeatures.length} more feature{topFeatures.length === 1 ? '' : 's'}
             </p>
           )}
         </div>
@@ -186,7 +180,7 @@ const FeatureRating: React.FC<Props> = ({ onNext }) => {
         <button
           onClick={handleSubmit}
           disabled={!allRated || !hasTopFeatures}
-          className="mt-8 w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105"
+          className="mt-4 w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2 px-4 rounded-lg font-semibold text-sm hover:from-blue-700 hover:to-purple-700 transition disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105"
         >
           {!allRated ? `Rate all features (${Object.keys(ratings).length}/${features.length})` :
            !hasTopFeatures ? 'Select your top 2 features' :
