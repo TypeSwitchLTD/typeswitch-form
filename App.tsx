@@ -11,8 +11,16 @@ import ThankYou from './components/ThankYou';
 import ShareCard from './components/ShareCard';
 import AdminDashboard from './components/AdminDashboard';
 import { saveSurveyData, saveEmailSubscription } from './lib/supabase';
+import { 
+  getDeviceFingerprint, 
+  getIPAddress, 
+  checkIfAlreadySubmitted, 
+  saveDeviceInfo,
+  detectDevice,
+  DeviceInfo 
+} from './lib/deviceTracking';
 
-// Centralized scoring function - SAME LOGIC, DIFFERENT DISPLAY
+// Centralized scoring function
 export const calculateOverallScore = (metrics: TypingMetrics): number => {
   let score = 100;
   
@@ -47,7 +55,7 @@ export const calculateOverallScore = (metrics: TypingMetrics): number => {
   return Math.max(1, Math.min(100, score));
 };
 
-// Score breakdown function - WITH NEW TERMINOLOGY
+// Score breakdown function
 export const getScoreBreakdown = (metrics: TypingMetrics) => {
   const breakdown = [];
   let totalPenalty = 0;
@@ -85,7 +93,6 @@ export const getScoreBreakdown = (metrics: TypingMetrics) => {
     totalPenalty += accuracyPenalty;
   }
   
-  // CHANGED: Language Switches -> Rhythm Disruption
   let switchPenalty = 0;
   if (metrics.languageSwitches > 20) switchPenalty = 15;
   else if (metrics.languageSwitches > 15) switchPenalty = 12;
@@ -94,9 +101,9 @@ export const getScoreBreakdown = (metrics: TypingMetrics) => {
   
   if (switchPenalty > 0) {
     breakdown.push({
-      category: 'Rhythm Disruption',  // CHANGED FROM 'Language Switches'
+      category: 'Rhythm Disruption',
       penalty: switchPenalty,
-      reason: `${metrics.languageSwitches} interruptions`  // CHANGED FROM 'switches'
+      reason: `${metrics.languageSwitches} interruptions`
     });
     totalPenalty += switchPenalty;
   }
@@ -116,7 +123,6 @@ export const getScoreBreakdown = (metrics: TypingMetrics) => {
     totalPenalty += mistakePenalty;
   }
   
-  // CHANGED: Frustration Level -> Flow Disruption
   let frustrationPenalty = 0;
   if (metrics.frustrationScore > 8) frustrationPenalty = 15;
   else if (metrics.frustrationScore > 6) frustrationPenalty = 12;
@@ -125,9 +131,9 @@ export const getScoreBreakdown = (metrics: TypingMetrics) => {
   
   if (frustrationPenalty > 0) {
     breakdown.push({
-      category: 'Flow Disruption',  // CHANGED FROM 'Frustration Level'
+      category: 'Flow Disruption',
       penalty: frustrationPenalty,
-      reason: `${metrics.frustrationScore}/10 disruption level`  // CHANGED FROM 'frustration'
+      reason: `${metrics.frustrationScore}/10 disruption level`
     });
     totalPenalty += frustrationPenalty;
   }
@@ -149,6 +155,17 @@ function App() {
   const [discountCode] = useState(`TYPE${Math.random().toString(36).substr(2, 6).toUpperCase()}`);
   const [isSaving, setIsSaving] = useState(false);
   const saveAttempted = useRef(false);
+  
+  // Device tracking
+  const [deviceInfo, setDeviceInfo] = useState<DeviceInfo | null>(null);
+  const [alreadySubmitted, setAlreadySubmitted] = useState(false);
+  const [checkingSubmission, setCheckingSubmission] = useState(true);
+  const [isMobileDevice, setIsMobileDevice] = useState(false);
+  
+  // Track if user skipped the test
+  const [skippedTest, setSkippedTest] = useState(false);
+  const [testCompleted, setTestCompleted] = useState(false);
+  const [surveyCompleted, setSurveyCompleted] = useState(false);
   
   // Admin click tracking
   const adminClickCount = useRef(0);
@@ -189,6 +206,40 @@ function App() {
     'thankYou'
   ];
 
+  // בדיקה אם המשתמש כבר מילא את השאלון
+  useEffect(() => {
+    const checkDevice = async () => {
+      setCheckingSubmission(true);
+      
+      // זיהוי סוג המכשיר
+      const deviceDetection = detectDevice();
+      setIsMobileDevice(deviceDetection.isMobile);
+      
+      // קבלת fingerprint ו-IP
+      const [fingerprint, ip] = await Promise.all([
+        getDeviceFingerprint(),
+        getIPAddress()
+      ]);
+      
+      const info: DeviceInfo = {
+        fingerprint,
+        ip,
+        deviceType: deviceDetection.type,
+        isMobile: deviceDetection.isMobile
+      };
+      
+      setDeviceInfo(info);
+      
+      // בדיקה אם כבר נשלח שאלון
+      const hasSubmitted = await checkIfAlreadySubmitted(fingerprint, ip);
+      setAlreadySubmitted(hasSubmitted);
+      
+      setCheckingSubmission(false);
+    };
+    
+    checkDevice();
+  }, []);
+
   useEffect(() => {
     window.scrollTo(0, 0);
     if (currentScreen === 0 && !(window as any).surveyStartTime) {
@@ -206,14 +257,25 @@ function App() {
     saveAttempted.current = true;
     
     console.log('Attempting to save survey data...');
-    console.log('Current survey data:', dataToSave);
-    console.log('Purchase decision data:', dataToSave.purchaseDecision);
     
     try {
-      const result = await saveSurveyData(dataToSave, discountCode);
+      // הוספת מידע על המכשיר לנתונים
+      const enhancedData = {
+        ...dataToSave,
+        deviceInfo: deviceInfo
+      };
+      
+      const result = await saveSurveyData(enhancedData, discountCode);
       
       if (result.success && result.id) {
         setSurveyId(result.id);
+        
+        // שמירת מידע על המכשיר
+        if (deviceInfo) {
+          await saveDeviceInfo(result.id, deviceInfo);
+        }
+        
+        setSurveyCompleted(true);
         console.log('Survey saved successfully with ID:', result.id);
         return { success: true, id: result.id };
       } else {
@@ -230,6 +292,29 @@ function App() {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleSkipTest = () => {
+    // אם כבר מילא את השאלון
+    if (surveyCompleted) {
+      alert('כבר מילאת את השאלון!');
+      setCurrentScreen(8); // חזרה למסך תודה
+      return;
+    }
+    
+    setSkippedTest(true);
+    setCurrentScreen(6); // Jump to feature rating
+  };
+
+  const handleTryTest = () => {
+    // אם כבר מילא את השאלון
+    if (surveyCompleted) {
+      alert('כבר מילאת את השאלון! המבחן לא ישמר שוב.');
+    }
+    
+    setTestCompleted(false);
+    setSkippedTest(false);
+    setCurrentScreen(2); // Go to before exercise screen
   };
 
   const handleNext = async (data?: any) => {
@@ -266,6 +351,9 @@ function App() {
             exercises: [...updatedSurveyData.exercises, exercise],
             metrics: updatedMetrics
           };
+          
+          // Mark test as completed
+          setTestCompleted(true);
         } else {
           updatedSurveyData = {
             ...updatedSurveyData,
@@ -278,18 +366,26 @@ function App() {
       setSurveyData(updatedSurveyData);
       
       // Save after purchase decision screen (screen 7)
-      if (currentScreen === 7 && !saveAttempted.current) {
+      if (currentScreen === 7 && !saveAttempted.current && !surveyCompleted) {
         console.log('Saving after purchase decision with data:', updatedSurveyData.purchaseDecision);
+        
+        // Add info about whether test was taken
+        updatedSurveyData.testSkipped = skippedTest;
+        updatedSurveyData.testCompleted = testCompleted;
         
         // Use the updated data directly for saving
         const saveResult = await saveToDatabase(updatedSurveyData);
         if (!saveResult.success) {
           console.error('Failed to save but continuing');
-          // Don't block the user from continuing even if save failed
         }
       }
       
-      setCurrentScreen(prev => prev + 1);
+      // If coming from results screen and user previously skipped test, go to thank you
+      if (currentScreen === 5 && testCompleted && skippedTest) {
+        setCurrentScreen(8); // Jump to thank you
+      } else {
+        setCurrentScreen(prev => prev + 1);
+      }
     } catch (err) {
       console.error('Error processing data:', err);
       setError('Something went wrong. Please try again.');
@@ -373,6 +469,46 @@ function App() {
       }
     };
   }, []);
+
+  // בדיקה ראשונית - האם כבר מילא שאלון?
+  if (checkingSubmission) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <p className="mt-4 text-gray-600">מאמת נתונים...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // אם כבר מילא שאלון בעבר
+  if (alreadySubmitted && currentScreen === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-8">
+        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md text-center">
+          <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Survey Already Completed</h2>
+            <p className="text-gray-600 mb-6">
+              It looks like you've already participated in our TypeSwitch survey. 
+              Each participant can only complete the survey once.
+            </p>
+            <p className="text-sm text-gray-500">
+              Thank you for your participation!
+            </p>
+          <div className="mt-6 pt-6 border-t">
+            <p className="text-xs text-gray-400">
+              If you think this is a mistake, please contact us
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Show admin dashboard if authenticated
   if (showAdmin) {
@@ -486,17 +622,81 @@ function App() {
                 </div>
               </div>
               
-              <button
-                onClick={() => handleNext()}
-                className="mt-8 w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition"
-              >
-                Start the Exercise
-              </button>
+              <div className="flex gap-3 mt-8">
+                {/* הצגה שונה למובייל */}
+                {isMobileDevice ? (
+                  <div className="w-full">
+                    <div className="bg-orange-100 border-2 border-orange-300 rounded-lg p-4 text-center">
+                      <div className="w-12 h-12 bg-orange-200 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <h3 className="font-semibold text-gray-800 mb-2">
+                        Typing Test Requires a Keyboard
+                      </h3>
+                      <p className="text-sm text-gray-600 mb-4">
+                        The typing test can only be done on a computer with a physical keyboard. 
+                        Mobile keyboards show only one language at a time.
+                      </p>
+                      <button
+                        onClick={handleSkipTest}
+                        className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition"
+                      >
+                        Continue to Survey Questions
+                      </button>
+                      <p className="text-xs text-gray-500 mt-3">
+                        You can still answer all survey questions on mobile
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => handleNext()}
+                      className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition"
+                    >
+                      Start the Exercise
+                    </button>
+                    <button
+                      onClick={handleSkipTest}
+                      className="flex-1 bg-gray-200 text-gray-700 py-3 px-6 rounded-lg font-semibold hover:bg-gray-300 transition"
+                    >
+                      Skip to Survey
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         );
       
       case 'exercise1':
+        // מונע גישה למבחן במובייל
+        if (isMobileDevice) {
+          return (
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-8">
+              <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md text-center">
+                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-4">Desktop Required</h2>
+                <p className="text-gray-600 mb-6">
+                  The typing test requires a physical keyboard. Please access this page from a desktop or laptop computer.
+                </p>
+                <button
+                  onClick={handleSkipTest}
+                  className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition"
+                >
+                  Skip to Survey
+                </button>
+              </div>
+            </div>
+          );
+        }
+        
         return (
           <TypingExercise 
             exerciseNumber={1} 
@@ -517,16 +717,47 @@ function App() {
         />;
       
       case 'featureRating':
+        // בדיקה אם כבר מילא את השאלון
+        if (surveyCompleted) {
+          return (
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-8">
+              <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md text-center">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                  <h2 className="text-2xl font-bold text-gray-800 mb-4">Survey Already Completed!</h2>
+                  <p className="text-gray-600 mb-6">
+                    Thank you for participating in the TypeSwitch survey. 
+                    Your responses have been saved.
+                  </p>
+                  <button
+                    onClick={() => setCurrentScreen(8)}
+                    className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition"
+                  >
+                    Back to Thank You Screen
+                  </button>
+              </div>
+            </div>
+          );
+        }
         return <FeatureRating onNext={handleNext} />;
       
       case 'purchase':
+        if (surveyCompleted) {
+          setCurrentScreen(8);
+          return null;
+        }
         return <PurchaseDecision onNext={handleNext} />;
       
       case 'thankYou':
         return <ThankYou 
           discountCode={discountCode} 
           onShare={handleShowShareCard} 
-          onEmailSubmit={handleEmailSubmit} 
+          onEmailSubmit={handleEmailSubmit}
+          skippedTest={skippedTest && !testCompleted}
+          onTryTest={handleTryTest}
         />;
       
       default:
