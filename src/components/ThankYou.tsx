@@ -1,9 +1,8 @@
-// src/components/ThankYou.tsx
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from "react";
 
 interface Props {
   discountCode: string;
-  onShare?: () => void;
+  onShare: () => void;
   onEmailSubmit?: (email: string) => void;
   skippedTest?: boolean;
   onTryTest?: () => void;
@@ -16,96 +15,57 @@ const ThankYou: React.FC<Props> = ({
   skippedTest = false,
   onTryTest,
 }) => {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [copied, setCopied] = useState(false);
   const [emailSubmitted, setEmailSubmitted] = useState(false);
-  const timerRef = useRef<number | null>(null);
 
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-    };
-  }, []);
-
-  const handleCopyCode = async () => {
-    try {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(discountCode);
-      } else {
-        // fallback for older browsers
-        const ta = document.createElement('textarea');
-        ta.value = discountCode;
-        ta.style.position = 'fixed';
-        ta.style.left = '-9999px';
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-      }
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText(discountCode).then(() => {
       setCopied(true);
-      if (timerRef.current) clearTimeout(timerRef.current);
-      timerRef.current = window.setTimeout(() => setCopied(false), 3000);
-    } catch (err) {
-      // don't break UI on clipboard failure
-      // eslint-disable-next-line no-console
-      console.error('Clipboard copy failed', err);
-    }
+      setTimeout(() => setCopied(false), 3000);
+    });
   };
 
   const handleEmailSubmit = () => {
-    if (!email || !email.includes('@')) return;
-    try {
+    if (email && email.includes("@")) {
       onEmailSubmit?.(email);
-    } catch (err) {
-      // swallow handler errors
-      // eslint-disable-next-line no-console
-      console.error('onEmailSubmit handler error', err);
-    }
-    setEmailSubmitted(true);
-  };
-
-  const handleShare = () => {
-    try {
-      onShare?.();
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error('onShare handler error', err);
-    }
-  };
-
-  const handleTryTest = () => {
-    try {
-      onTryTest?.();
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error('onTryTest handler error', err);
-    }
-  };
-
-  const handleEmailKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleEmailSubmit();
+      setEmailSubmitted(true);
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-8">
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-3xl w-full">
+        {/* Success Icon */}
         <div className="mb-6 text-center">
           <div className="w-24 h-24 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-14 h-14 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+            <svg
+              className="w-14 h-14 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={3}
+                d="M5 13l4 4L19 7"
+              />
             </svg>
           </div>
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">Thank You for Participating!</h1>
-          <p className="text-lg text-gray-600">You've helped shape the future of multilingual keyboards.</p>
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">
+            Thank You for Participating!
+          </h1>
+          <p className="text-lg text-gray-600">
+            You've helped shape the future of multilingual keyboards.
+          </p>
         </div>
 
+        {/* Discount Code */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl p-6 mb-6">
-          <h3 className="text-xl font-semibold mb-4 text-center">Your Exclusive Reward</h3>
+          <h3 className="text-xl font-semibold mb-4 text-center">
+            Your Exclusive Reward
+          </h3>
           <div className="bg-white/20 backdrop-blur rounded-lg p-4">
             <p className="text-center mb-3">25% Early Bird Discount Code:</p>
             <div className="flex items-center justify-center space-x-3">
@@ -113,17 +73,30 @@ const ThankYou: React.FC<Props> = ({
                 {discountCode}
               </code>
               <button
-                type="button"
                 onClick={handleCopyCode}
-                aria-label="Copy discount code"
                 className="bg-white/30 hover:bg-white/40 text-white px-4 py-3 rounded-lg transition"
               >
                 {copied ? (
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                 ) : (
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -135,20 +108,24 @@ const ThankYou: React.FC<Props> = ({
               </button>
             </div>
             {copied && (
-              <p className="text-center text-sm mt-2 text-green-200" role="status" aria-live="polite">
+              <p className="text-center text-sm mt-2 text-green-200">
                 ✓ Code copied to clipboard!
               </p>
             )}
           </div>
         </div>
 
+        {/* Share Results or Try Test */}
         {!skippedTest ? (
           <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-6 mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3 text-center">Show Off Your Typing Skills!</h3>
-            <p className="text-gray-600 text-center mb-4">Challenge friends by sharing your results.</p>
+            <h3 className="text-lg font-semibold text-gray-800 mb-3 text-center">
+              Show Off Your Typing Skills!
+            </h3>
+            <p className="text-gray-600 text-center mb-4">
+              Challenge friends by sharing your results.
+            </p>
             <button
-              type="button"
-              onClick={handleShare}
+              onClick={onShare}
               className="w-full bg-gradient-to-r from-green-600 to-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-green-700 hover:to-blue-700 transition"
             >
               Share My Results
@@ -156,11 +133,14 @@ const ThankYou: React.FC<Props> = ({
           </div>
         ) : (
           <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-6 mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3 text-center">Want to Try the Typing Test?</h3>
-            <p className="text-gray-600 text-center mb-4">See how you perform and get shareable results!</p>
+            <h3 className="text-lg font-semibold text-gray-800 mb-3 text-center">
+              Want to Try the Typing Test?
+            </h3>
+            <p className="text-gray-600 text-center mb-4">
+              See how you perform and get shareable results!
+            </p>
             <button
-              type="button"
-              onClick={handleTryTest}
+              onClick={onTryTest}
               className="w-full bg-gradient-to-r from-orange-600 to-yellow-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-orange-700 hover:to-yellow-700 transition"
             >
               Try the Test Now
@@ -168,25 +148,24 @@ const ThankYou: React.FC<Props> = ({
           </div>
         )}
 
+        {/* Email Notification */}
         <div className="border-t pt-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-3 text-center">Get notified at launch?</h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3 text-center">
+            Get notified at launch?
+          </h3>
           {!emailSubmitted ? (
-            <div className="flex max-w-md mx-auto" role="form" aria-label="Notify me form">
+            <div className="flex space-x-2 max-w-md mx-auto">
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                onKeyDown={handleEmailKeyDown}
                 placeholder="your@email.com"
-                aria-label="Email address"
                 className="flex-1 px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
               />
               <button
-                type="button"
                 onClick={handleEmailSubmit}
-                disabled={!email || !email.includes('@')}
-                aria-disabled={!email || !email.includes('@')}
-                className="ml-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+                disabled={!email || !email.includes("@")}
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
               >
                 Notify Me
               </button>
