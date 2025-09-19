@@ -7,7 +7,7 @@ interface Props {
   skippedTest?: boolean;
   onTryTest?: () => void;
 }
-
+ 
 const ThankYou: React.FC<Props> = ({ discountCode, onShare, onEmailSubmit, skippedTest = false, onTryTest }) => {
   const [email, setEmail] = useState('');
   const [copied, setCopied] = useState(false);
@@ -81,7 +81,8 @@ const ThankYou: React.FC<Props> = ({ discountCode, onShare, onEmailSubmit, skipp
               Share My Results
             </button>
           </div>
-        ) : (
+        ) :
+          (
           <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-6 mb-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-3 text-center">Want to Try the Typing Test?</h3>
             <p className="text-gray-600 text-center mb-4">See how you perform and get shareable results!</p>
