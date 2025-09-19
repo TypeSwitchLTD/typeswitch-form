@@ -1,48 +1,12 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { TypingMetrics } from '../types';
+import { calculateOverallScore } from '../App'; // Import the centralized function
 
 interface Props {
   metrics: TypingMetrics;
   onClose: () => void;
   selectedLanguage?: string;
 }
-
-const calculateOverallScore = (metrics: TypingMetrics): number => {
-  let score = 100;
-  
-  // Reduced WPM penalty by 25%
-  if (metrics.wpm < 20) score -= 22;
-  else if (metrics.wpm < 30) score -= 19;
-  else if (metrics.wpm < 40) score -= 13;
-  else if (metrics.wpm < 50) score -= 7;
-  else if (metrics.wpm < 60) score -= 3;
-  
-  // Increased emphasis on accuracy
-  if (metrics.accuracy < 70) score -= 35;
-  else if (metrics.accuracy < 80) score -= 28;
-  else if (metrics.accuracy < 85) score -= 22;
-  else if (metrics.accuracy < 90) score -= 17;
-  else if (metrics.accuracy < 95) score -= 12;
-  else if (metrics.accuracy < 98) score -= 6;
-  
-  if (metrics.languageSwitches > 20) score -= 15;
-  else if (metrics.languageSwitches > 15) score -= 12;
-  else if (metrics.languageSwitches > 10) score -= 8;
-  else if (metrics.languageSwitches > 5) score -= 4;
-  
-  if (metrics.totalMistakesMade > 80) score -= 15;
-  else if (metrics.totalMistakesMade > 60) score -= 12;
-  else if (metrics.totalMistakesMade > 40) score -= 8;
-  else if (metrics.totalMistakesMade > 20) score -= 4;
-  
-  if (metrics.frustrationScore > 8) score -= 15;
-  else if (metrics.frustrationScore > 6) score -= 12;
-  else if (metrics.frustrationScore > 4) score -= 8;
-  else if (metrics.frustrationScore > 2) score -= 4;
-  
-  return Math.max(1, Math.round(score));
-};
-
 
 const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebrew-English' }) => {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -54,24 +18,24 @@ const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebr
 
   const shareTexts = {
     'Hebrew-English': {
-      postLine1: 'עשיתי את מבחן ההקלדה של TypeSwitch.',
-      postLine2: 'מסתבר שרמת ההקלדה שלי היא "{scoreLevel}" עם ציון כללי של {finalScore}/100.',
-      postCta: '💡 בואו לבדוק את עצמכם ולעזור למחקר! כל תשובה עוזרת + 15% הנחה מיידית.',
-      copyMessage: '✅ הטקסט הועתק! פשוט הדבק (Ctrl+V) אותו בפוסט.',
+      postLine1: 'I took the TypeSwitch typing test.',
+      postLine2: 'Turns out my typing level is "{scoreLevel}" with an overall score of {finalScore}/100.',
+      postCta: '💡 Test yourself and help the research! Every entry helps + get a 15% instant discount.',
+      copyMessage: '✅ Text copied! Just paste (Ctrl+V) it into your post.',
       isRTL: true
     },
     'Russian-English': {
       postLine1: 'Я прошёл тест на скорость печати от TypeSwitch.',
       postLine2: 'Оказывается, мой уровень — "{scoreLevel}" с общим баллом {finalScore}/100.',
       postCta: '💡 Проверьте себя и помогите исследованию! + 15% скидка сразу.',
-      copyMessage: '✅ Текст скопирован! Просто вставьте (Ctrl+V) его в пост.',
+      copyMessage: '✅ Text copied! Just paste (Ctrl+V) it into your post.',
       isRTL: false
     },
     'Arabic-English': {
       postLine1: 'لقد أجريت اختبار الكتابة من TypeSwitch.',
       postLine2: 'اتضح أن مستواي هو "{scoreLevel}" بنتيجة إجمالية {finalScore}/100.',
       postCta: '💡 اختبروا أنفسكم وساعدوا في البحث! كل إجابة تساعد + خصم 15% فوري.',
-      copyMessage: '✅ تم نسخ النص! فقط قم بلصقه (Ctrl+V) في المنشور.',
+      copyMessage: '✅ Text copied! Just paste (Ctrl+V) it into your post.',
       isRTL: true
     }
   };
@@ -89,6 +53,7 @@ const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebr
   const scoreLevelInfo = getScoreLevelInfo(finalScore);
 
   const generateImageWithCanvas = () => {
+    // Canvas generation logic remains the same
     setIsGenerating(true);
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -190,6 +155,7 @@ const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebr
     setIsGenerating(false);
   };
   
+  // roundRect function remains the same
   const roundRect = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) => {
     ctx.beginPath();
     ctx.moveTo(x + radius, y);
@@ -204,7 +170,9 @@ const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebr
     ctx.closePath();
   };
 
-  const downloadImage = () => {
+
+  // downloadImage, buildPostText, and shareToSocial logic remains the same
+    const downloadImage = () => {
     const a = document.createElement('a');
     a.href = imageUrl;
     a.download = `typeswitch-results-${selectedLanguage}.png`;
@@ -258,7 +226,9 @@ const ShareCard: React.FC<Props> = ({ metrics, onClose, selectedLanguage = 'Hebr
     if (url) window.open(url, '_blank');
   };
 
+
   return (
+    // JSX Rendering logic remains the same
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-8">
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-3xl w-full">
         <div className="flex justify-between items-center mb-6">
