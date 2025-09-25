@@ -21,64 +21,101 @@ const WelcomeScreen: React.FC<Props> = ({ onNext, onAdminClick }) => {
         </div>
 
         {/* Header */}
-        <div className="text-center mb-8">
-            <h1 className="text-4xl md:text-5xl font-extrabold mb-3 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+        <div className="text-center mb-10">
+            <h1 className="text-4xl md:text-5xl font-extrabold mb-4 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
               Is Your Keyboard Working Against You?
             </h1>
-            <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
-              Help us build the ultimate multilingual keyboard and get a huge discount.
+            <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto mt-4">
+              Help us build the ultimate multilingual keyboard. Your feedback will shape its future.
             </p>
-        </div>
-
-        {/* 3 Simple Steps */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center mb-10">
-            <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="text-4xl mb-2">📝</div>
-                <h3 className="font-semibold text-gray-800">1. Quick Survey</h3>
-                <p className="text-sm text-gray-600">Answer a few questions about your typing habits (1-3 mins).</p>
-            </div>
-            <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="text-4xl mb-2">⌨️</div>
-                <h3 className="font-semibold text-gray-800">2. Optional Challenge</h3>
-                <p className="text-sm text-gray-600">Take a 3-min typing test to see your multilingual skills analyzed.</p>
-            </div>
-            <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="text-4xl mb-2">🎁</div>
-                <h3 className="font-semibold text-gray-800">3. Get Your Reward</h3>
-                <p className="text-sm text-gray-600">Receive an exclusive 25% OFF discount for our launch.</p>
-            </div>
         </div>
         
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center mb-8">
-            {/* Left Card - Why we need you */}
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-100 p-6 rounded-xl border border-blue-200 h-full">
-                <h2 className="text-2xl font-bold text-gray-800 mb-3">Why We Need You</h2>
-                <p className="text-gray-700 mb-4">
-                    We're uncovering the small, daily frustrations of typing in multiple languages. Your feedback is crucial and will directly shape the core features of our keyboard.
-                </p>
-                <ul className="space-y-2 text-sm">
-                    <li className="flex items-start">
-                        <span className="text-green-500 mr-2">✔️</span>
-                        <span className="text-gray-600">Help us solve the real problems multilingual professionals face.</span>
-                    </li>
-                     <li className="flex items-start">
-                        <span className="text-green-500 mr-2">✔️</span>
-                        <span className="text-gray-600">Your answers determine which features get built first.</span>
-                    </li>
-                </ul>
-            </div>
-            
-            {/* Right Card - The Reward */}
-            <div className="bg-gradient-to-br from-green-50 to-emerald-100 p-6 rounded-xl border border-green-200 h-full">
-                <h2 className="text-2xl font-bold text-gray-800 mb-3">Your Exclusive Reward</h2>
-                <div className="text-center bg-white/50 p-4 rounded-lg">
-                    <div className="text-5xl font-bold text-green-600">25% OFF</div>
-                    <p className="text-gray-700 font-semibold">Guaranteed Early-Bird Discount</p>
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-10">
+            {/* Left Section - The "Why" */}
+            <div className="lg:col-span-3 space-y-6">
+                <div className="bg-gray-50 p-6 rounded-xl border transition-all hover:shadow-lg hover:border-blue-200">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-3 flex items-center">
+                        <span className="text-3xl mr-3">🎯</span> Shape the Future of Typing
+                    </h2>
+                    <p className="text-gray-700">
+                        We're solving the small, daily frustrations of typing in multiple languages. Your answers will directly influence our product's core features and help thousands of professionals like you.
+                    </p>
                 </div>
-                <p className="text-center text-sm text-gray-600 mt-3">
-                    (15% for completing the survey + 10% for leaving your email)
-                </p>
+                 <div className="bg-gray-50 p-6 rounded-xl border transition-all hover:shadow-lg hover:border-purple-200">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-3 flex items-center">
+                        <span className="text-3xl mr-3">🎁</span> A Thank You for Your Time
+                    </h2>
+                    <p className="text-gray-700 mb-3">As a token of our appreciation, you'll receive an exclusive early-bird discount.</p>
+                    <div className="space-y-2">
+                        <div className="bg-white p-3 rounded-md flex items-center">
+                            <span className="bg-purple-100 text-purple-700 font-bold px-3 py-1 rounded-md text-sm">15% OFF</span>
+                            <span className="ml-3 text-gray-600">For completing the 3-minute survey.</span>
+                        </div>
+                        <div className="bg-white p-3 rounded-md flex items-center">
+                            <span className="bg-purple-100 text-purple-700 font-bold px-3 py-1 rounded-md text-sm">+10% OFF</span>
+                            <span className="ml-3 text-gray-600">For leaving your email for launch updates.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Right Section - The Process */}
+            <div className="lg:col-span-2 bg-gradient-to-br from-blue-50 to-indigo-100 p-6 rounded-xl border border-blue-200">
+                 <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">3 Simple Steps</h2>
+                 <div className="space-y-4">
+                    <div className="flex items-start">
+                        <div className="text-3xl mr-4">📝</div>
+                        <div>
+                            <h3 className="font-semibold text-gray-800">Quick Survey</h3>
+                            <p className="text-sm text-gray-600">Answer a few questions about your typing habits (1-3 mins).</p>
+                        </div>
+                    </div>
+                    <hr/>
+                    <div className="flex items-start">
+                        <div className="text-3xl mr-4">⌨️</div>
+                        <div>
+                            <h3 className="font-semibold text-gray-800">Optional Challenge</h3>
+                            <p className="text-sm text-gray-600">Take a 3-min typing test to analyze your skills.</p>
+                        </div>
+                    </div>
+                    <hr/>
+                    <div className="flex items-start">
+                        <div className="text-3xl mr-4">🎉</div>
+                        <div>
+                            <h3 className="font-semibold text-gray-800">Get Your Reward</h3>
+                            <p className="text-sm text-gray-600">Receive your discount code for our launch.</p>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+        </div>
+        
+        {/* Optional Typing Challenge Details */}
+        <div className="bg-gray-50 p-6 rounded-xl border mb-10">
+            <h2 className="text-2xl font-bold text-gray-800 mb-3 text-center">Curious? Take the Optional Typing Challenge</h2>
+            <p className="text-center text-gray-600 mb-4">See your multilingual skills in black and white. Our test provides a detailed personal report on:</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div>
+                    <div className="text-2xl">🚀</div>
+                    <h4 className="font-semibold">True WPM</h4>
+                    <p className="text-xs text-gray-500">Your speed when switching languages.</p>
+                </div>
+                 <div>
+                    <div className="text-2xl">🎯</div>
+                    <h4 className="font-semibold">Accuracy</h4>
+                    <p className="text-xs text-gray-500">A breakdown of language vs. standard errors.</p>
+                </div>
+                 <div>
+                    <div className="text-2xl">⏳</div>
+                    <h4 className="font-semibold">Wasted Time</h4>
+                    <p className="text-xs text-gray-500">Seconds lost on backspacing & corrections.</p>
+                </div>
+                 <div>
+                    <div className="text-2xl">😤</div>
+                    <h4 className="font-semibold">Frustration Score</h4>
+                    <p className="text-xs text-gray-500">Based on pauses and repeated edits.</p>
+                </div>
             </div>
         </div>
 
@@ -86,21 +123,19 @@ const WelcomeScreen: React.FC<Props> = ({ onNext, onAdminClick }) => {
         <div className="text-center">
             <button
               onClick={onNext}
-              className="w-full md:w-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-12 rounded-lg font-bold text-xl hover:shadow-xl transition-all transform hover:scale-105"
+              className="w-full md:w-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-12 rounded-lg font-bold text-xl hover:shadow-xl transition-all duration-300 transform hover:scale-105"
             >
               Start the 3-Minute Survey
             </button>
-        </div>
-        
-        {/* Trust Badges */}
-        <div className="mt-6 border-t pt-4 flex items-center justify-center space-x-6 text-sm text-gray-500">
-            <div className="flex items-center space-x-1.5">
-                <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-                <span>100% Anonymous</span>
-            </div>
-            <div className="flex items-center space-x-1.5">
-                <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" /></svg>
-                <span>Takes 1-3 Minutes</span>
+            <div className="mt-6 flex items-center justify-center space-x-6 text-sm text-gray-500">
+                <div className="flex items-center space-x-1.5">
+                    <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                    <span>100% Anonymous</span>
+                </div>
+                <div className="flex items-center space-x-1.5">
+                    <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" /></svg>
+                    <span>Takes 1-3 Minutes</span>
+                </div>
             </div>
         </div>
       </div>
