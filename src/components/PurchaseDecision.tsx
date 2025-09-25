@@ -7,25 +7,47 @@ interface Props {
 const PurchaseDecision: React.FC<Props> = ({ onNext }) => {
   const [answers, setAnswers] = useState({
     overallValueProposition: '',
-    ranking: { '1': '', '2': '', '3': '' },
+    rankedFeatures: [] as string[], // Changed from object to array for easier ranking
     finalFeedbackText: '',
+    noFinalFeedback: false, // Added for the new checkbox
   });
 
-  const handleOptionChange = (field: keyof typeof answers, value: any) => {
+  const handleOptionChange = (field: keyof Omit<typeof answers, 'rankedFeatures'>, value: any) => {
     setAnswers(prev => ({ ...prev, [field]: value }));
   };
   
-  const handleRankingChange = (rank: '1' | '2' | '3', value: string) => {
-      setAnswers(prev => ({
-          ...prev,
-          ranking: { ...prev.ranking, [rank]: value },
-      }));
+  const handleFeatureClick = (featureId: string) => {
+    setAnswers(prev => {
+        const currentRanked = prev.rankedFeatures;
+        if (currentRanked.includes(featureId)) {
+            // Already ranked, do nothing (or implement de-ranking)
+            return prev;
+        }
+        if (currentRanked.length < 3) {
+            return { ...prev, rankedFeatures: [...currentRanked, featureId] };
+        }
+        return prev;
+    });
   };
 
-  const isFormValid = answers.overallValueProposition && answers.ranking['1'] && answers.ranking['2'] && answers.ranking['3'] && answers.finalFeedbackText.length > 0;
+  const resetRanking = () => {
+    setAnswers(prev => ({ ...prev, rankedFeatures: [] }));
+  };
+
+  const handleNoFeedbackCheck = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const isChecked = e.target.checked;
+    setAnswers(prev => ({
+        ...prev,
+        noFinalFeedback: isChecked,
+        finalFeedbackText: isChecked ? '' : prev.finalFeedbackText
+    }));
+  };
+
+  const isFormValid = answers.overallValueProposition && answers.rankedFeatures.length === 3 && (answers.finalFeedbackText.length > 0 || answers.noFinalFeedback);
 
   const handleSubmit = () => {
     if (isFormValid) {
+        // We can convert the array to the old object format if needed, but array is fine for JSONB
         onNext({ epiphany: answers });
     }
   };
@@ -38,23 +60,13 @@ const PurchaseDecision: React.FC<Props> = ({ onNext }) => {
   ];
   
   const rankingOptions = useMemo(() => [
-        { id: 'mechanical', label: 'Mechanical Keyboard' },
-        { id: 'physical_switch', label: 'Dedicated Physical Language Switch' },
-        { id: 'auto_detection', label: 'Automatic Language Detection' },
-        { id: 'dynamic_lighting', label: 'Dynamic Backlighting' },
-        { id: 'wireless', label: 'Stable Wireless Connectivity' },
-        { id: 'mic', label: 'High-Quality Built-in Mic w/ Dictation button' },
-        { id: 'wrist_rest', label: 'Ergonomic Wrist Rest' },
-        { id: 'programmable_keys', label: 'Programmable Keys' },
-        { id: 'rotary_knob', label: 'Rotary Knob' },
-        { id: 'visual_display', label: 'On-Keyboard Visual Display' },
+        { id: 'mechanical', icon: '⌨️', label: 'Mechanical Keyboard', description: 'For a precise and fast typing feel.' },
+        { id: 'physical_switch', icon: '🔄', label: 'Dedicated Physical Language Switch', description: 'To always know for certain which language you are in.' },
+        { id: 'auto_detection', icon: '✨', label: 'Automatic Language Detection', description: 'A smart mechanism that switches the language for you as you type.' },
+        { id: 'dynamic_lighting', icon: '💡', label: 'Dynamic Backlighting', description: 'Smart lighting that only illuminates the keys for the active language.' },
+        { id: 'wireless', icon: '📡', label: 'Stable Wireless Connectivity', description: 'For a clean, cable-free workspace.' },
+        { id: 'mic', icon: '🎙️', label: 'High-Quality Built-in Mic', description: 'With a dedicated button to activate the OS\'s Dictation feature.' },
   ], []);
-
-  const getAvailableOptions = (exclude: string[]) => rankingOptions.filter(opt => !exclude.includes(opt.id));
-  
-  const rank1Options = getAvailableOptions([answers.ranking['2'], answers.ranking['3']]);
-  const rank2Options = getAvailableOptions([answers.ranking['1'], answers.ranking['3']]);
-  const rank3Options = getAvailableOptions([answers.ranking['1'], answers.ranking['2']]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -88,40 +100,70 @@ const PurchaseDecision: React.FC<Props> = ({ onNext }) => {
                 </div>
             </div>
 
-            {/* Question 3.2 */}
+            {/* Question 3.2 - Revamped */}
             <div className="bg-gray-50 rounded-lg p-6 border">
-                <h3 className="text-xl font-semibold text-gray-800 mb-1">Which solutions sound most appealing?</h3>
-                <p className="text-gray-600 mb-4">To help us build the right features, please rank your top 3.</p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                     <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-1">Rank 1 (Most Important)</label>
-                        <select value={answers.ranking['1']} onChange={(e) => handleRankingChange('1', e.target.value)} className="w-full p-3 border-gray-300 rounded-md shadow-sm text-base">
-                            <option value="">Select...</option>
-                            {rank1Options.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
-                        </select>
+                <div className="flex justify-between items-center mb-4">
+                    <div>
+                        <h3 className="text-xl font-semibold text-gray-800 mb-1">Which solutions sound most appealing?</h3>
+                        <p className="text-gray-600">Click to rank your top 3. First click is 1st choice.</p>
                     </div>
-                     <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-1">Rank 2</label>
-                         <select value={answers.ranking['2']} onChange={(e) => handleRankingChange('2', e.target.value)} className="w-full p-3 border-gray-300 rounded-md shadow-sm text-base">
-                            <option value="">Select...</option>
-                            {rank2Options.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
-                        </select>
-                    </div>
-                     <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-1">Rank 3</label>
-                         <select value={answers.ranking['3']} onChange={(e) => handleRankingChange('3', e.target.value)} className="w-full p-3 border-gray-300 rounded-md shadow-sm text-base">
-                            <option value="">Select...</option>
-                            {rank3Options.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
-                        </select>
-                    </div>
+                    <button onClick={resetRanking} className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-300 transition">Reset</button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {rankingOptions.map(option => {
+                        const rank = answers.rankedFeatures.indexOf(option.id) + 1;
+                        const isRanked = rank > 0;
+                        const isDisabled = !isRanked && answers.rankedFeatures.length >= 3;
+
+                        return (
+                            <button 
+                                key={option.id}
+                                onClick={() => handleFeatureClick(option.id)}
+                                disabled={isDisabled}
+                                className={`p-4 rounded-lg text-left transition-all border-2 relative ${
+                                    isRanked ? 'bg-blue-600 text-white border-blue-700 shadow-md' : 
+                                    isDisabled ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed' : 'bg-white hover:bg-blue-50 border-gray-200'
+                                }`}
+                            >
+                                {isRanked && (
+                                    <span className="absolute top-2 right-2 w-8 h-8 bg-white text-blue-600 rounded-full flex items-center justify-center font-bold text-lg shadow-inner">
+                                        {rank}
+                                    </span>
+                                )}
+                                <div className="flex items-start">
+                                    <span className="text-2xl mr-3">{option.icon}</span>
+                                    <div>
+                                        <div className="font-semibold">{option.label}</div>
+                                        <p className={`text-sm ${isRanked ? 'text-blue-100' : 'text-gray-600'}`}>{option.description}</p>
+                                    </div>
+                                </div>
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
 
-            {/* Question 3.3 */}
+            {/* Question 3.3 - Updated */}
             <div className="bg-gray-50 rounded-lg p-6 border">
                 <h3 className="text-xl font-semibold text-gray-800 mb-1">This is your chance to make an impact.</h3>
-                <p className="text-gray-600 mb-4">If you could change ONE thing about how your keyboard handles multiple languages, what would it be?</p>
-                <textarea value={answers.finalFeedbackText} onChange={(e) => handleOptionChange('finalFeedbackText', e.target.value)} placeholder="Share your most important idea here..." className="w-full mt-2 p-3 border-2 border-gray-300 rounded-lg text-base" rows={4} />
+                <p className="text-gray-600 mb-4">If you could change ONE thing about how your keyboard handles languages, what would it be?</p>
+                <textarea 
+                    value={answers.finalFeedbackText} 
+                    onChange={(e) => handleOptionChange('finalFeedbackText', e.target.value)} 
+                    disabled={answers.noFinalFeedback}
+                    placeholder="Share your most important idea here..." 
+                    className="w-full mt-2 p-3 border-2 border-gray-300 rounded-lg text-base disabled:bg-gray-200" 
+                    rows={4} 
+                />
+                <label className="flex items-center mt-3 p-2 cursor-pointer">
+                    <input 
+                        type="checkbox" 
+                        checked={answers.noFinalFeedback}
+                        onChange={handleNoFeedbackCheck}
+                        className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="ml-3 text-gray-700">I don't have anything to add.</span>
+                </label>
             </div>
         </div>
 
