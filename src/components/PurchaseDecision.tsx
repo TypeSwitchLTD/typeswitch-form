@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, 'use-useState', useMemo } from 'react';
 
 interface Props {
   onNext: (data: any) => void;
@@ -22,13 +22,20 @@ const PurchaseDecision: React.FC<Props> = ({ onNext }) => {
       }));
   };
 
-  const isFormValid = answers.overallValueProposition && answers.ranking['1'] && answers.ranking['2'] && answers.ranking['3'];
+  const isFormValid = answers.overallValueProposition && answers.ranking['1'] && answers.ranking['2'] && answers.ranking['3'] && answers.finalFeedbackText.length > 0;
 
   const handleSubmit = () => {
     if (isFormValid) {
         onNext({ epiphany: answers });
     }
   };
+
+  const benefits = [
+    { id: 'productivity', icon: '🚀', title: 'Productivity Boost', description: 'Save time and get more done.' },
+    { id: 'focus', icon: '🧠', title: 'Uninterrupted Flow', description: 'Stay focused without losing your train of thought.' },
+    { id: 'control', icon: '😌', title: 'Effortless Control', description: 'Feel in command of your keyboard, not fighting it.' },
+    { id: 'communication', icon: '💬', title: 'Clearer Communication', description: 'Reduce errors and communicate more professionally.' },
+  ];
   
   const rankingOptions = useMemo(() => [
         { id: 'mechanical', label: 'Mechanical Keyboard' },
@@ -51,42 +58,58 @@ const PurchaseDecision: React.FC<Props> = ({ onNext }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-3xl w-full">
-        <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">💡 The Ideal Solution</h2>
+      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-4xl w-full">
+        <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-800 mb-2">💡 The Ideal Solution</h2>
+            <p className="text-lg text-gray-600">Let's define what the perfect keyboard looks like for you.</p>
+        </div>
         
         <div className="space-y-8">
             {/* Question 3.1 */}
-            <div>
-                <h3 className="text-lg font-semibold text-gray-800">What's the single greatest benefit of a 'smart' keyboard that solves these issues?</h3>
-                <div className="grid grid-cols-2 gap-3 mt-2">
-                    <button onClick={() => handleOptionChange('overallValueProposition', 'productivity')} className={`p-3 rounded-lg ${answers.overallValueProposition === 'productivity' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>Saving time</button>
-                    <button onClick={() => handleOptionChange('overallValueProposition', 'focus')} className={`p-3 rounded-lg ${answers.overallValueProposition === 'focus' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>Staying focused</button>
-                    <button onClick={() => handleOptionChange('overallValueProposition', 'peace_of_mind')} className={`p-3 rounded-lg ${answers.overallValueProposition === 'peace_of_mind' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>Peace of mind</button>
-                    <button onClick={() => handleOptionChange('overallValueProposition', 'professionalism')} className={`p-3 rounded-lg ${answers.overallValueProposition === 'professionalism' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>Professional image</button>
+            <div className="bg-gray-50 rounded-lg p-6 border">
+                <h3 className="text-xl font-semibold text-gray-800 mb-1">What's the SINGLE greatest benefit?</h3>
+                <p className="text-gray-600 mb-4">Imagine a 'smart' keyboard that solves all your language-switching issues. What would be the biggest win for you?</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {benefits.map(benefit => (
+                        <button 
+                            key={benefit.id}
+                            onClick={() => handleOptionChange('overallValueProposition', benefit.id)} 
+                            className={`p-4 rounded-lg text-left transition-all transform hover:scale-105 border-2 ${answers.overallValueProposition === benefit.id ? 'bg-blue-600 text-white border-blue-700 shadow-lg' : 'bg-white hover:bg-blue-50 border-gray-200'}`}
+                        >
+                            <div className="flex items-center">
+                                <span className="text-3xl mr-4">{benefit.icon}</span>
+                                <div>
+                                    <div className="font-bold text-lg">{benefit.title}</div>
+                                    <p className={`text-sm ${answers.overallValueProposition === benefit.id ? 'text-blue-100' : 'text-gray-600'}`}>{benefit.description}</p>
+                                </div>
+                            </div>
+                        </button>
+                    ))}
                 </div>
             </div>
 
             {/* Question 3.2 */}
-            <div>
-                <h3 className="text-lg font-semibold text-gray-800">Which of the following solutions sounds most appealing? (Please rank your top 3)</h3>
-                <div className="space-y-3 mt-2">
+            <div className="bg-gray-50 rounded-lg p-6 border">
+                <h3 className="text-xl font-semibold text-gray-800 mb-1">Which solutions sound most appealing?</h3>
+                <p className="text-gray-600 mb-4">To help us build the right features, please rank your top 3.</p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                      <div>
-                        <label className="block text-sm font-medium text-gray-700">Most important (1st)</label>
-                        <select value={answers.ranking['1']} onChange={(e) => handleRankingChange('1', e.target.value)} className="mt-1 block w-full p-2 border-gray-300 rounded-md">
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Rank 1 (Most Important)</label>
+                        <select value={answers.ranking['1']} onChange={(e) => handleRankingChange('1', e.target.value)} className="w-full p-3 border-gray-300 rounded-md shadow-sm text-base">
                             <option value="">Select...</option>
                             {rank1Options.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
                         </select>
                     </div>
                      <div>
-                        <label className="block text-sm font-medium text-gray-700">2nd choice</label>
-                         <select value={answers.ranking['2']} onChange={(e) => handleRankingChange('2', e.target.value)} className="mt-1 block w-full p-2 border-gray-300 rounded-md">
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Rank 2</label>
+                         <select value={answers.ranking['2']} onChange={(e) => handleRankingChange('2', e.target.value)} className="w-full p-3 border-gray-300 rounded-md shadow-sm text-base">
                             <option value="">Select...</option>
                             {rank2Options.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
                         </select>
                     </div>
                      <div>
-                        <label className="block text-sm font-medium text-gray-700">3rd choice</label>
-                         <select value={answers.ranking['3']} onChange={(e) => handleRankingChange('3', e.target.value)} className="mt-1 block w-full p-2 border-gray-300 rounded-md">
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Rank 3</label>
+                         <select value={answers.ranking['3']} onChange={(e) => handleRankingChange('3', e.target.value)} className="w-full p-3 border-gray-300 rounded-md shadow-sm text-base">
                             <option value="">Select...</option>
                             {rank3Options.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
                         </select>
@@ -95,14 +118,15 @@ const PurchaseDecision: React.FC<Props> = ({ onNext }) => {
             </div>
 
             {/* Question 3.3 */}
-            <div className="border-t pt-6">
-                <h3 className="text-lg font-semibold text-gray-800">If you could change one thing about how your keyboard handles multiple languages, what would it be?</h3>
-                <textarea value={answers.finalFeedbackText} onChange={(e) => handleOptionChange('finalFeedbackText', e.target.value)} placeholder="Your feedback here..." className="w-full mt-2 p-3 border-2 border-gray-300 rounded-lg" rows={3} />
+            <div className="bg-gray-50 rounded-lg p-6 border">
+                <h3 className="text-xl font-semibold text-gray-800 mb-1">This is your chance to make an impact.</h3>
+                <p className="text-gray-600 mb-4">If you could change ONE thing about how your keyboard handles multiple languages, what would it be?</p>
+                <textarea value={answers.finalFeedbackText} onChange={(e) => handleOptionChange('finalFeedbackText', e.target.value)} placeholder="Share your most important idea here..." className="w-full mt-2 p-3 border-2 border-gray-300 rounded-lg text-base" rows={4} />
             </div>
         </div>
 
-        <button onClick={handleSubmit} disabled={!isFormValid} className="w-full mt-8 bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50">
-          Complete Survey
+        <button onClick={handleSubmit} disabled={!isFormValid} className="w-full mt-8 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-6 rounded-lg font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+          {isFormValid ? 'Complete Survey' : 'Please fill all fields to continue'}
         </button>
       </div>
     </div>
