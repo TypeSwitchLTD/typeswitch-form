@@ -1,209 +1,109 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 
 interface Props {
   onNext: (data: any) => void;
 }
 
 const PurchaseDecision: React.FC<Props> = ({ onNext }) => {
-  const [priorities, setPriorities] = useState({
-    savingTime: 0,
-    reducingErrors: 0,
-    lessFrustration: 0,
-    lookProfessional: 0,
-    typingSpeed: 0
+  const [answers, setAnswers] = useState({
+    overallValueProposition: '',
+    ranking: { '1': '', '2': '', '3': '' },
+    finalFeedbackText: '',
   });
+
+  const handleOptionChange = (field: keyof typeof answers, value: any) => {
+    setAnswers(prev => ({ ...prev, [field]: value }));
+  };
   
-  const [purchase, setPurchase] = useState({
-    whereToBuy: [] as string[],
-    priceRange: ''
-  });
-
-  const priorityOptions = [
-    { id: 'savingTime', label: 'Saving 10+ minutes per day' },
-    { id: 'reducingErrors', label: 'Reducing errors by 50%' },
-    { id: 'lessFrustration', label: 'Less frustration' },
-    { id: 'lookProfessional', label: 'Looking professional' },
-    { id: 'typingSpeed', label: 'Typing speed' }
-  ];
-
-  const purchaseOptions = [
-    'Manufacturer website',
-    'Online marketplaces (Amazon/eBay)',
-    'Physical store',
-    'Large electronics store',
-    'Other'
-  ];
-
-  const handlePriorityChange = (id: string, value: number) => {
-    const currentValue = priorities[id];
-    const isValueUsed = Object.entries(priorities).some(
-      ([key, val]) => key !== id && val === value
-    );
-    
-    if (isValueUsed) {
-      const swapKey = Object.keys(priorities).find(
-        key => key !== id && priorities[key] === value
-      );
-      if (swapKey) {
-        setPriorities(prev => ({
+  const handleRankingChange = (rank: '1' | '2' | '3', value: string) => {
+      setAnswers(prev => ({
           ...prev,
-          [id]: value,
-          [swapKey]: currentValue
-        }));
-      }
-    } else {
-      setPriorities(prev => ({
-        ...prev,
-        [id]: value
+          ranking: { ...prev.ranking, [rank]: value },
       }));
-    }
   };
 
-  const togglePurchaseOption = (option: string) => {
-    setPurchase(prev => {
-      const current = [...prev.whereToBuy];
-      const index = current.indexOf(option);
-      
-      if (index > -1) {
-        current.splice(index, 1);
-      } else if (current.length < 2) {
-        current.push(option);
-      } else {
-        // Replace the second option
-        current[1] = option;
-      }
-      
-      return { ...prev, whereToBuy: current };
-    });
-  };
+  const isFormValid = answers.overallValueProposition && answers.ranking['1'] && answers.ranking['2'] && answers.ranking['3'];
 
   const handleSubmit = () => {
-    const allPrioritiesSet = Object.values(priorities).every(p => p > 0);
-    if (allPrioritiesSet && purchase.whereToBuy.length > 0 && purchase.priceRange) {
-      // Create the complete purchaseDecision object
-      const purchaseDecisionData = {
-        purchaseDecision: {
-          priorities: priorities,
-          whereToBuy: purchase.whereToBuy,
-          priceRange: purchase.priceRange
-        }
-      };
-      
-      console.log('Submitting purchase decision:', purchaseDecisionData);
-      onNext(purchaseDecisionData);
+    if (isFormValid) {
+        onNext({ epiphany: answers });
     }
   };
+  
+  const rankingOptions = useMemo(() => [
+        { id: 'mechanical', label: 'Mechanical Keyboard' },
+        { id: 'physical_switch', label: 'Dedicated Physical Language Switch' },
+        { id: 'auto_detection', label: 'Automatic Language Detection' },
+        { id: 'dynamic_lighting', label: 'Dynamic Backlighting' },
+        { id: 'wireless', label: 'Stable Wireless Connectivity' },
+        { id: 'mic', label: 'High-Quality Built-in Mic w/ Dictation button' },
+        { id: 'wrist_rest', label: 'Ergonomic Wrist Rest' },
+        { id: 'programmable_keys', label: 'Programmable Keys' },
+        { id: 'rotary_knob', label: 'Rotary Knob' },
+        { id: 'visual_display', label: 'On-Keyboard Visual Display' },
+  ], []);
 
-  const isAllPrioritiesSet = Object.values(priorities).every(p => p > 0);
+  const getAvailableOptions = (exclude: string[]) => rankingOptions.filter(opt => !exclude.includes(opt.id));
+  
+  const rank1Options = getAvailableOptions([answers.ranking['2'], answers.ranking['3']]);
+  const rank2Options = getAvailableOptions([answers.ranking['1'], answers.ranking['3']]);
+  const rank3Options = getAvailableOptions([answers.ranking['1'], answers.ranking['2']]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-3xl w-full">
-        <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">Purchase Decision</h2>
+        <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">💡 The Ideal Solution</h2>
         
         <div className="space-y-8">
-          {/* Priority Ranking */}
-          <div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">
-              Rank by importance (1=most important, 5=least important):
-            </h3>
-            <p className="text-sm text-gray-600 mb-4">Each number can only be used once</p>
-            <div className="space-y-3">
-              {priorityOptions.map((option) => (
-                <div key={option.id} className="flex items-center space-x-4">
-                  <select
-                    value={priorities[option.id] || ''}
-                    onChange={(e) => handlePriorityChange(option.id, parseInt(e.target.value))}
-                    className="w-16 p-2 border rounded-lg text-center font-semibold"
-                  >
-                    <option value="">-</option>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                  </select>
-                  <span className="text-gray-700 flex-1">{option.label}</span>
+            {/* Question 3.1 */}
+            <div>
+                <h3 className="text-lg font-semibold text-gray-800">What's the single greatest benefit of a 'smart' keyboard that solves these issues?</h3>
+                <div className="grid grid-cols-2 gap-3 mt-2">
+                    <button onClick={() => handleOptionChange('overallValueProposition', 'productivity')} className={`p-3 rounded-lg ${answers.overallValueProposition === 'productivity' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>Saving time</button>
+                    <button onClick={() => handleOptionChange('overallValueProposition', 'focus')} className={`p-3 rounded-lg ${answers.overallValueProposition === 'focus' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>Staying focused</button>
+                    <button onClick={() => handleOptionChange('overallValueProposition', 'peace_of_mind')} className={`p-3 rounded-lg ${answers.overallValueProposition === 'peace_of_mind' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>Peace of mind</button>
+                    <button onClick={() => handleOptionChange('overallValueProposition', 'professionalism')} className={`p-3 rounded-lg ${answers.overallValueProposition === 'professionalism' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>Professional image</button>
                 </div>
-              ))}
             </div>
-            {!isAllPrioritiesSet && (
-              <p className="text-sm text-orange-600 mt-2">Please rank all items</p>
-            )}
-          </div>
 
-          {/* Where to Buy - Max 2 selections */}
-          <div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">Where would you purchase?</h3>
-            <p className="text-sm text-gray-600 mb-4">Select up to 2 options (1st choice and alternative)</p>
-            <div className="grid grid-cols-2 gap-3">
-              {purchaseOptions.map((option, index) => {
-                const optionIndex = purchase.whereToBuy.indexOf(option);
-                const isSelected = optionIndex > -1;
-                const isPrimary = optionIndex === 0;
-                
-                return (
-                  <button
-                    key={option}
-                    onClick={() => togglePurchaseOption(option)}
-                    className={`p-3 rounded-lg transition text-left relative ${
-                      isSelected
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 hover:bg-gray-200'
-                    }`}
-                  >
-                    {isSelected && (
-                      <span className="absolute top-1 right-2 text-xs font-bold bg-white text-blue-600 px-2 py-1 rounded">
-                        {isPrimary ? '1st' : '2nd'}
-                      </span>
-                    )}
-                    {option}
-                  </button>
-                );
-              })}
+            {/* Question 3.2 */}
+            <div>
+                <h3 className="text-lg font-semibold text-gray-800">Which of the following solutions sounds most appealing? (Please rank your top 3)</h3>
+                <div className="space-y-3 mt-2">
+                     <div>
+                        <label className="block text-sm font-medium text-gray-700">Most important (1st)</label>
+                        <select value={answers.ranking['1']} onChange={(e) => handleRankingChange('1', e.target.value)} className="mt-1 block w-full p-2 border-gray-300 rounded-md">
+                            <option value="">Select...</option>
+                            {rank1Options.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
+                        </select>
+                    </div>
+                     <div>
+                        <label className="block text-sm font-medium text-gray-700">2nd choice</label>
+                         <select value={answers.ranking['2']} onChange={(e) => handleRankingChange('2', e.target.value)} className="mt-1 block w-full p-2 border-gray-300 rounded-md">
+                            <option value="">Select...</option>
+                            {rank2Options.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
+                        </select>
+                    </div>
+                     <div>
+                        <label className="block text-sm font-medium text-gray-700">3rd choice</label>
+                         <select value={answers.ranking['3']} onChange={(e) => handleRankingChange('3', e.target.value)} className="mt-1 block w-full p-2 border-gray-300 rounded-md">
+                            <option value="">Select...</option>
+                            {rank3Options.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
+                        </select>
+                    </div>
+                </div>
             </div>
-            {purchase.whereToBuy.length === 0 && (
-              <p className="text-sm text-orange-600 mt-2">Please select at least one option</p>
-            )}
-          </div>
 
-          {/* Price Range */}
-          <div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">How much would you pay?</h3>
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                'Up to $80',
-                '$80-120',
-                '$120-150',
-                '$150-200',
-                'Over $200'
-              ].map(option => (
-                <button
-                  key={option}
-                  onClick={() => setPurchase({...purchase, priceRange: option})}
-                  className={`p-3 rounded-lg transition ${
-                    purchase.priceRange === option
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 hover:bg-gray-200'
-                  }`}
-                >
-                  {option}
-                </button>
-              ))}
+            {/* Question 3.3 */}
+            <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold text-gray-800">If you could change one thing about how your keyboard handles multiple languages, what would it be?</h3>
+                <textarea value={answers.finalFeedbackText} onChange={(e) => handleOptionChange('finalFeedbackText', e.target.value)} placeholder="Your feedback here..." className="w-full mt-2 p-3 border-2 border-gray-300 rounded-lg" rows={3} />
             </div>
-            {!purchase.priceRange && (
-              <p className="text-sm text-orange-600 mt-2">Please select a price range</p>
-            )}
-          </div>
-
-          <button
-            onClick={handleSubmit}
-            disabled={!purchase.whereToBuy.length || !purchase.priceRange || !isAllPrioritiesSet}
-            className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Complete Survey
-          </button>
         </div>
+
+        <button onClick={handleSubmit} disabled={!isFormValid} className="w-full mt-8 bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50">
+          Complete Survey
+        </button>
       </div>
     </div>
   );
