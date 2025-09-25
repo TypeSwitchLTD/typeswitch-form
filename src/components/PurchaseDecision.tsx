@@ -7,9 +7,9 @@ interface Props {
 const PurchaseDecision: React.FC<Props> = ({ onNext }) => {
   const [answers, setAnswers] = useState({
     overallValueProposition: '',
-    rankedFeatures: [] as string[], // Changed from object to array for easier ranking
+    rankedFeatures: [] as string[],
     finalFeedbackText: '',
-    noFinalFeedback: false, // Added for the new checkbox
+    noFinalFeedback: false,
   });
 
   const handleOptionChange = (field: keyof Omit<typeof answers, 'rankedFeatures'>, value: any) => {
@@ -20,7 +20,6 @@ const PurchaseDecision: React.FC<Props> = ({ onNext }) => {
     setAnswers(prev => {
         const currentRanked = prev.rankedFeatures;
         if (currentRanked.includes(featureId)) {
-            // Already ranked, do nothing (or implement de-ranking)
             return prev;
         }
         if (currentRanked.length < 3) {
@@ -47,7 +46,6 @@ const PurchaseDecision: React.FC<Props> = ({ onNext }) => {
 
   const handleSubmit = () => {
     if (isFormValid) {
-        // We can convert the array to the old object format if needed, but array is fine for JSONB
         onNext({ epiphany: answers });
     }
   };
@@ -66,11 +64,15 @@ const PurchaseDecision: React.FC<Props> = ({ onNext }) => {
         { id: 'dynamic_lighting', icon: '💡', label: 'Dynamic Backlighting', description: 'Smart lighting that only illuminates the keys for the active language.' },
         { id: 'wireless', icon: '📡', label: 'Stable Wireless Connectivity', description: 'For a clean, cable-free workspace.' },
         { id: 'mic', icon: '🎙️', label: 'High-Quality Built-in Mic', description: 'With a dedicated button to activate the OS\'s Dictation feature.' },
+        { id: 'wrist_rest', icon: '🤲', label: 'Ergonomic Wrist Rest', description: 'For comfort during long work sessions.' },
+        { id: 'programmable_keys', icon: '⚙️', label: 'Programmable Keys', description: 'To create custom shortcuts for a perfect workflow.' },
+        { id: 'rotary_knob', icon: '🎛️', label: 'Rotary Knob', description: 'For quick control over volume, scrolling, or other actions.' },
+        { id: 'visual_display', icon: '🖥️', label: 'On-Keyboard Visual Display', description: 'To clearly show the active language and other stats.' },
   ], []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-4xl w-full">
+      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-5xl w-full">
         <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-gray-800 mb-2">💡 The Ideal Solution</h2>
             <p className="text-lg text-gray-600">Let's define what the perfect keyboard looks like for you.</p>
@@ -100,7 +102,7 @@ const PurchaseDecision: React.FC<Props> = ({ onNext }) => {
                 </div>
             </div>
 
-            {/* Question 3.2 - Revamped */}
+            {/* Question 3.2 - Revamped with all options */}
             <div className="bg-gray-50 rounded-lg p-6 border">
                 <div className="flex justify-between items-center mb-4">
                     <div>
@@ -109,7 +111,7 @@ const PurchaseDecision: React.FC<Props> = ({ onNext }) => {
                     </div>
                     <button onClick={resetRanking} className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-300 transition">Reset</button>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     {rankingOptions.map(option => {
                         const rank = answers.rankedFeatures.indexOf(option.id) + 1;
                         const isRanked = rank > 0;
@@ -120,7 +122,7 @@ const PurchaseDecision: React.FC<Props> = ({ onNext }) => {
                                 key={option.id}
                                 onClick={() => handleFeatureClick(option.id)}
                                 disabled={isDisabled}
-                                className={`p-4 rounded-lg text-left transition-all border-2 relative ${
+                                className={`p-4 rounded-lg text-left transition-all border-2 relative h-full ${
                                     isRanked ? 'bg-blue-600 text-white border-blue-700 shadow-md' : 
                                     isDisabled ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed' : 'bg-white hover:bg-blue-50 border-gray-200'
                                 }`}
