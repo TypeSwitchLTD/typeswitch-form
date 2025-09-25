@@ -1,93 +1,120 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 interface Props {
-  onNext: (lang: 'he' | 'en') => void;
-  onAdminClick: () => void;
+  onNext: () => void;
+  onAdminClick?: () => void;
 }
 
-const texts = {
-  he: {
-    headline: "האם המקלדת הנוכחית שלך עוזרת לך או פוגעת בך?",
-    body: "אנחנו מפתחים פתרון חדש למקלידים רב-לשוניים מקצועיים, ואנחנו צריכים את עזרתך.\nהשאלון הקצר הזה (1-3 דקות) יעזור לנו לחשוף את האתגרים הנסתרים של הקלדה בשפות מרובות – אותם רגעים קטנים של תסכול, איבוד ריכוז ובזבוז זמן שאנחנו כל כך רגילים אליהם, עד שכבר הפסקנו לשים לב.",
-    rewardsTitle: "מה תקבלו בתמורה?",
-    rewardsDiscount: "הנחה משמעותית: 15% הנחה על השתתפות בסקר, ו-10% נוספים בהשארת אימייל לעדכונים (סה\"כ 25% הנחה לרכישת המקלדת שלנו כשתצא לשוק).",
-    rewardsImpact: "הזדמנות להשפיע: התשובות שלכם יכריעו מה יהיו היכולות המרכזיות של המוצר.",
-    challengeTitle: "אופציונלי: אתגר הקלדה (3 דקות נוספות, דורש מקלדת)",
-    challengeBody: "רוצה לראות את הנתונים שחור על גבי לבן? אתגר ההקלדה שלנו מנתח את הביצועים שלך במשימה רב-לשונית מורכבת. בסיום תקבל דו\"ח אישי שמפרט:",
-    challengeWPM: "מהירות הקלדה אמיתית (WPM): בשילוב שתי שפות.",
-    challengeAccuracy: "אחוזי דיוק: כולל ניתוח טעויות שפה מול טעויות הקלדה רגילות.",
-    challengeTimeWasted: "זמן אבוד: כמה שניות בזבזת על מחיקות ותיקונים.",
-    challengeFrustration: "רמת תסכול: בהתבסס על השהיות ותיקונים חוזרים.",
-    startButton: "התחל שאלון",
-    selectLang: "בחר שפה / Select Language"
-  },
-  en: {
-    headline: "Is Your Keyboard Helping You Work, or Working Against You?",
-    body: "We're developing a new solution for professional multilingual typists, and we need your help.\nThis short survey (1-3 minutes) will help us uncover the hidden challenges of typing in multiple languages—those small moments of frustration, lost focus, and wasted time that we've become so used to, we've stopped noticing them.",
-    rewardsTitle: "What's in it for you?",
-    rewardsDiscount: "A Significant Discount: Get 15% OFF for completing the survey, plus an additional 10% OFF for leaving your email for updates (Total of 25% OFF when our keyboard launches).",
-    rewardsImpact: "A Chance to Make an Impact: Your answers will directly shape the core features of our product.",
-    challengeTitle: "Optional: Typing Challenge (3 extra minutes, keyboard required)",
-    challengeBody: "Want to see the problem in black and white? Our typing challenge analyzes your performance on a complex multilingual task. At the end, you'll receive a personal report detailing:",
-    challengeWPM: "Your True Multilingual WPM: How fast you type when mixing languages.",
-    challengeAccuracy: "Accuracy Rate: Including a breakdown of language errors vs. standard typos.",
-    challengeTimeWasted: "Time Wasted: Seconds you lost on backspacing and corrections.",
-    challengeFrustration: "Frustration Level: Based on pauses and repeated edits.",
-    startButton: "Start Survey",
-    selectLang: "Select Language / בחר שפה"
-  }
-};
-
 const WelcomeScreen: React.FC<Props> = ({ onNext, onAdminClick }) => {
-  const [lang, setLang] = useState<'he' | 'en' | null>(null);
-  const currentTexts = lang ? texts[lang] : texts.en;
-  const pageDir = lang === 'he' ? 'rtl' : 'ltr';
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-3xl w-full" dir={pageDir}>
-        <div onClick={onAdminClick} className="text-center cursor-pointer mb-6">
-            <h1 className="text-4xl font-bold text-gray-800">{currentTexts.headline}</h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-8">
+      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-3xl text-center">
+        {/* Logo/Icon */}
+        <div className="mb-6">
+          <div className="w-24 h-24 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full mx-auto flex items-center justify-center">
+            <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+            </svg>
+          </div>
         </div>
-        
-        {!lang ? (
-             <div className="text-center p-6">
-                <h2 className="text-2xl font-semibold mb-4">{texts.en.selectLang}</h2>
-                <div className="flex justify-center gap-4">
-                    <button onClick={() => setLang('en')} className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">English</button>
-                    <button onClick={() => setLang('he')} className="px-8 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition">עברית</button>
-                </div>
-            </div>
-        ) : (
-            <>
-                <p className="text-gray-600 whitespace-pre-line text-center">{currentTexts.body}</p>
-                
-                <div className="mt-8 space-y-6">
-                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                        <h3 className="font-bold text-gray-800 mb-2">{currentTexts.rewardsTitle}</h3>
-                        <ul className="list-disc list-inside space-y-1 text-sm text-gray-700">
-                            <li>{currentTexts.rewardsDiscount}</li>
-                            <li>{currentTexts.rewardsImpact}</li>
-                        </ul>
-                    </div>
-                    <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-                        <h3 className="font-bold text-gray-800 mb-2">{currentTexts.challengeTitle}</h3>
-                         <p className="text-sm text-gray-700 mb-2">{currentTexts.challengeBody}</p>
-                        <ul className="list-disc list-inside space-y-1 text-sm text-gray-700">
-                            <li>{currentTexts.challengeWPM}</li>
-                            <li>{currentTexts.challengeAccuracy}</li>
-                            <li>{currentTexts.challengeTimeWasted}</li>
-                            <li>{currentTexts.challengeFrustration}</li>
-                        </ul>
-                    </div>
-                </div>
 
-                <button onClick={() => onNext(lang)} className="mt-8 w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold text-lg hover:bg-blue-700 transition">
-                    {currentTexts.startButton}
-                </button>
-            </>
-        )}
+        <h1 className="text-4xl font-bold text-gray-800 mb-6">
+          Welcome to the TypeSwitch Keyboard Research Study
+        </h1>
+        
+        <div className="space-y-4 text-lg text-gray-700">
+          <p>
+            This questionnaire is designed for research purposes to develop 
+            a revolutionary keyboard for multilingual users.
+          </p>
+          
+          <p className="font-medium text-blue-600">
+            Your honest feedback will help us create a keyboard that actually solves real typing problems!
+          </p>
+          
+          {/* Features List */}
+          <div className="bg-gray-50 rounded-lg p-6 mt-6 text-left">
+            <h3 className="font-semibold text-gray-800 mb-3">What we'll measure in 1 exercise:</h3>
+            <ul className="space-y-2 text-base">
+              <li className="flex items-start">
+                <svg className="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Your typing speed and accuracy in multiple languages</span>
+              </li>
+              <li className="flex items-start">
+                <svg className="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Common mistakes when switching between languages</span>
+              </li>
+              <li className="flex items-start">
+                <svg className="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Frustration points in current keyboard designs</span>
+              </li>
+              <li className="flex items-start">
+                <svg className="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Features that matter most to you</span>
+              </li>
+            </ul>
+          </div>
+          
+          {/* Time and Reward Box */}
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 mt-6 border border-blue-200">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="text-center">
+                <div className="text-3xl mb-2">⏱️</div>
+                <p className="font-semibold text-gray-800">3-5 minutes</p>
+                <p className="text-sm text-gray-600">Quick & Easy</p>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl mb-2">🎁</div>
+                <p className="font-semibold text-gray-800">25% OFF</p>
+                <p className="text-sm text-gray-600">Exclusive discount code</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Privacy Note */}
+          <p className="text-sm text-gray-500 italic mt-4">
+            Your data is anonymous and used only for product development
+          </p>
+        </div>
+
+        <button
+          onClick={onNext}
+          className="mt-8 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-12 rounded-lg font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition transform hover:scale-105 shadow-lg"
+        >
+          Start Survey →
+        </button>
+
+        {/* Progress indicator */}
+        <div className="mt-6 flex justify-center items-center space-x-2">
+          <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+          <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
+          <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
+          <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
+          <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
+        </div>
       </div>
+      
+      {/* Admin button - hidden in corner */}
+      {onAdminClick && (
+        <button
+          onClick={onAdminClick}
+          className="fixed bottom-4 right-4 w-12 h-12 bg-gray-800 hover:bg-gray-900 text-white rounded-full flex items-center justify-center transition shadow-lg z-50 select-none"
+          title="Admin Dashboard"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </button>
+      )}
     </div>
   );
 };

@@ -5,99 +5,140 @@ import DemographicsScreen from './components/DemographicsScreen';
 import TypingExercise from './components/TypingExercise';
 import SelfAssessment from './components/SelfAssessment';
 import ResultsReport from './components/ResultsReport';
-import TheAwakening from './components/TheAwakening';
-import TheDeepDive from './components/TheDeepDive';
-import TheEpiphany from './components/TheEpiphany';
+import FeatureRating from './components/FeatureRating';
+import PurchaseDecision from './components/PurchaseDecision';
 import ThankYou from './components/ThankYou';
 import ShareCard from './components/ShareCard';
 import AdminDashboard from './components/AdminDashboard';
 import { saveSurveyData, saveEmailSubscription } from './lib/supabase';
-import {
-  getDeviceFingerprint,
-  getIPAddress,
-  checkIfAlreadySubmitted,
-  saveDeviceInfo,
-  detectDevice,
-  DeviceInfo
-} from './lib/deviceTracking';
 
-// Centralized scoring and breakdown functions
+// Centralized scoring function
 export const calculateOverallScore = (metrics: TypingMetrics): number => {
-  if (!metrics || !metrics.wpm) return 0;
-  
   let score = 100;
   
-  // WPM penalties
   if (metrics.wpm < 20) score -= 30;
   else if (metrics.wpm < 30) score -= 25;
   else if (metrics.wpm < 40) score -= 18;
   else if (metrics.wpm < 50) score -= 10;
   else if (metrics.wpm < 60) score -= 5;
   
-  // Accuracy penalties
-  if (metrics.accuracy < 85) score -= 20;
+  if (metrics.accuracy < 70) score -= 30;
+  else if (metrics.accuracy < 80) score -= 25;
+  else if (metrics.accuracy < 85) score -= 20;
   else if (metrics.accuracy < 90) score -= 15;
   else if (metrics.accuracy < 95) score -= 10;
+  else if (metrics.accuracy < 98) score -= 5;
   
-  // Error penalties
-  score -= Math.min(15, metrics.totalErrors * 2);
-  score -= Math.min(10, metrics.languageErrors * 3);
-  score -= Math.min(8, metrics.deletions * 0.5);
-  score -= Math.min(12, metrics.frustrationScore * 1.5);
+  if (metrics.languageSwitches > 20) score -= 15;
+  else if (metrics.languageSwitches > 15) score -= 12;
+  else if (metrics.languageSwitches > 10) score -= 8;
+  else if (metrics.languageSwitches > 5) score -= 4;
   
-  return Math.max(1, Math.min(100, Math.round(score)));
+  if (metrics.totalMistakesMade > 80) score -= 15;
+  else if (metrics.totalMistakesMade > 60) score -= 12;
+  else if (metrics.totalMistakesMade > 40) score -= 8;
+  else if (metrics.totalMistakesMade > 20) score -= 4;
+  
+  if (metrics.frustrationScore > 8) score -= 15;
+  else if (metrics.frustrationScore > 6) score -= 12;
+  else if (metrics.frustrationScore > 4) score -= 8;
+  else if (metrics.frustrationScore > 2) score -= 4;
+  
+  return Math.max(1, Math.min(100, score));
 };
 
+// Score breakdown function
 export const getScoreBreakdown = (metrics: TypingMetrics) => {
   const breakdown = [];
   let totalPenalty = 0;
   
-  if (metrics.wpm < 60) {
-    const penalty = metrics.wpm < 20 ? 30 : metrics.wpm < 30 ? 25 : metrics.wpm < 40 ? 18 : metrics.wpm < 50 ? 10 : 5;
-    breakdown.push({ category: 'Typing Speed', reason: `${metrics.wpm} WPM`, penalty });
-    totalPenalty += penalty;
+  let wpmPenalty = 0;
+  if (metrics.wpm < 20) wpmPenalty = 30;
+  else if (metrics.wpm < 30) wpmPenalty = 25;
+  else if (metrics.wpm < 40) wpmPenalty = 18;
+  else if (metrics.wpm < 50) wpmPenalty = 10;
+  else if (metrics.wpm < 60) wpmPenalty = 5;
+  
+  if (wpmPenalty > 0) {
+    breakdown.push({
+      category: 'Typing Speed',
+      penalty: wpmPenalty,
+      reason: `${metrics.wpm} WPM (below average)`
+    });
+    totalPenalty += wpmPenalty;
   }
   
-  if (metrics.accuracy < 95) {
-    const penalty = metrics.accuracy < 85 ? 20 : metrics.accuracy < 90 ? 15 : 10;
-    breakdown.push({ category: 'Accuracy', reason: `${metrics.accuracy}%`, penalty });
-    totalPenalty += penalty;
+  let accuracyPenalty = 0;
+  if (metrics.accuracy < 70) accuracyPenalty = 30;
+  else if (metrics.accuracy < 80) accuracyPenalty = 25;
+  else if (metrics.accuracy < 85) accuracyPenalty = 20;
+  else if (metrics.accuracy < 90) accuracyPenalty = 15;
+  else if (metrics.accuracy < 95) accuracyPenalty = 10;
+  else if (metrics.accuracy < 98) accuracyPenalty = 5;
+  
+  if (accuracyPenalty > 0) {
+    breakdown.push({
+      category: 'Accuracy',
+      penalty: accuracyPenalty,
+      reason: `${metrics.accuracy}% accuracy`
+    });
+    totalPenalty += accuracyPenalty;
   }
   
-  if (metrics.totalErrors > 0) {
-    const penalty = Math.min(15, metrics.totalErrors * 2);
-    breakdown.push({ category: 'Total Errors', reason: `${metrics.totalErrors} errors`, penalty });
-    totalPenalty += penalty;
+  let switchPenalty = 0;
+  if (metrics.languageSwitches > 20) switchPenalty = 15;
+  else if (metrics.languageSwitches > 15) switchPenalty = 12;
+  else if (metrics.languageSwitches > 10) switchPenalty = 8;
+  else if (metrics.languageSwitches > 5) switchPenalty = 4;
+  
+  if (switchPenalty > 0) {
+    breakdown.push({
+      category: 'Language Switches',
+      penalty: switchPenalty,
+      reason: `${metrics.languageSwitches} switches`
+    });
+    totalPenalty += switchPenalty;
   }
   
-  if (metrics.languageErrors > 0) {
-    const penalty = Math.min(10, metrics.languageErrors * 3);
-    breakdown.push({ category: 'Language Errors', reason: `${metrics.languageErrors} wrong language`, penalty });
-    totalPenalty += penalty;
+  let mistakePenalty = 0;
+  if (metrics.totalMistakesMade > 80) mistakePenalty = 15;
+  else if (metrics.totalMistakesMade > 60) mistakePenalty = 12;
+  else if (metrics.totalMistakesMade > 40) mistakePenalty = 8;
+  else if (metrics.totalMistakesMade > 20) mistakePenalty = 4;
+  
+  if (mistakePenalty > 0) {
+    breakdown.push({
+      category: 'Total Mistakes',
+      penalty: mistakePenalty,
+      reason: `${metrics.totalMistakesMade} mistakes`
+    });
+    totalPenalty += mistakePenalty;
   }
   
-  if (metrics.deletions > 0) {
-    const penalty = Math.min(8, metrics.deletions * 0.5);
-    breakdown.push({ category: 'Deletions', reason: `${metrics.deletions} backspaces`, penalty });
-    totalPenalty += penalty;
-  }
+  let frustrationPenalty = 0;
+  if (metrics.frustrationScore > 8) frustrationPenalty = 15;
+  else if (metrics.frustrationScore > 6) frustrationPenalty = 12;
+  else if (metrics.frustrationScore > 4) frustrationPenalty = 8;
+  else if (metrics.frustrationScore > 2) frustrationPenalty = 4;
   
-  if (metrics.frustrationScore > 0) {
-    const penalty = Math.min(12, metrics.frustrationScore * 1.5);
-    breakdown.push({ category: 'Frustration', reason: `${metrics.frustrationScore}/10 level`, penalty });
-    totalPenalty += penalty;
+  if (frustrationPenalty > 0) {
+    breakdown.push({
+      category: 'Frustration Level',
+      penalty: frustrationPenalty,
+      reason: `${metrics.frustrationScore}/10 frustration`
+    });
+    totalPenalty += frustrationPenalty;
   }
   
   return {
     breakdown,
     totalPenalty,
-    finalScore: Math.max(1, 100 - totalPenalty)
+    finalScore: 100 - totalPenalty
   };
 };
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState(0);
-  const [lang, setLang] = useState<'he' | 'en'>('en');
   const [showShareCard, setShowShareCard] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -106,58 +147,27 @@ function App() {
   const [discountCode] = useState(`TYPE${Math.random().toString(36).substr(2, 6).toUpperCase()}`);
   const [isSaving, setIsSaving] = useState(false);
   const saveAttempted = useRef(false);
-
-  const [deviceInfo, setDeviceInfo] = useState<DeviceInfo | null>(null);
-  const [alreadySubmitted, setAlreadySubmitted] = useState(false);
-  const [checkingSubmission, setCheckingSubmission] = useState(true);
-  const [isMobileDevice, setIsMobileDevice] = useState(false);
-
-  const [skippedTest, setSkippedTest] = useState(false);
-  const [testCompleted, setTestCompleted] = useState(false);
-  const [surveyCompleted, setSurveyCompleted] = useState(false);
-  const [isRetakeTest, setIsRetakeTest] = useState(false);
-
-  const [surveyData, setSurveyData] = useState<Partial<SurveyData>>({
-    demographics: {
-      languages: [],
-      hoursTyping: '',
-      occupation: '',
-      keyboardType: '',
-      currentKeyboard: '',
-      age: '',
-      diagnosis: ''
-    },
+  
+  // Admin click tracking
+  const adminClickCount = useRef(0);
+  const adminClickTimer = useRef<NodeJS.Timeout | null>(null);
+  const lastClickTime = useRef<number>(0);
+  
+  const [surveyData, setSurveyData] = useState<SurveyData>({
+    demographics: {},
     exercises: [],
-    selfAssessment: {
-      difficulty: 0,
-      errors: 0,
-      languageSwitching: 0,
-      frustration: 0
-    },
-    awakening: {
-      symptoms: []
-    },
-    deepDive: {
-      flowBreakerImpact: '',
-      professionalImageImpact: '',
-      highPaceChallenge: '',
-      copingMechanismText: '',
-      copingMechanismNone: false
-    },
-    epiphany: {
-      overallValueProposition: '',
-      ranking: {},
-      finalFeedbackText: ''
-    },
+    selfAssessment: {},
+    featureRatings: {},
+    purchaseDecision: {},
     metrics: {
       totalErrors: 0,
       languageErrors: 0,
       punctuationErrors: 0,
       deletions: 0,
-      corrections: 0,
-      languageSwitches: 0,
       averageDelay: 0,
       frustrationScore: 0,
+      languageSwitches: 0,
+      corrections: 0,
       totalMistakesMade: 0,
       finalErrors: 0,
       accuracy: 0,
@@ -167,84 +177,117 @@ function App() {
 
   const screens = [
     'welcome',
-    'demographics',
+    'demographics', 
     'beforeExercise',
     'exercise1',
     'selfAssessment',
     'results',
-    'theAwakening',
-    'theDeepDive',
-    'theEpiphany',
+    'featureRating',
+    'purchase',
     'thankYou'
   ];
 
-  // Initialize device tracking
   useEffect(() => {
-    const initializeDeviceTracking = async () => {
-      try {
-        // Set checkingSubmission to false immediately so welcome screen shows
-        setCheckingSubmission(false);
-        
-        const device = detectDevice();
-        setIsMobileDevice(device.isMobile);
-        
-        const [fingerprint, ip] = await Promise.all([
-          getDeviceFingerprint(),
-          getIPAddress()
-        ]);
-        
-        const deviceInfo: DeviceInfo = {
-          fingerprint,
-          ip,
-          deviceType: device.type,
-          isMobile: device.isMobile
-        };
-        
-        setDeviceInfo(deviceInfo);
-        
-        const alreadySubmitted = await checkIfAlreadySubmitted(fingerprint, ip);
-        setAlreadySubmitted(alreadySubmitted);
-      } catch (error) {
-        console.error('Error initializing device tracking:', error);
-        // Even if there's an error, allow the user to proceed
-        setAlreadySubmitted(false);
+    window.scrollTo(0, 0);
+    if (currentScreen === 0 && !(window as any).surveyStartTime) {
+      (window as any).surveyStartTime = Date.now();
+    }
+  }, [currentScreen]);
+
+  const saveToDatabase = async (dataToSave: SurveyData) => {
+    if (saveAttempted.current || isSaving) {
+      console.log('Save already attempted or in progress');
+      return { success: false, id: null };
+    }
+    
+    setIsSaving(true);
+    saveAttempted.current = true;
+    
+    console.log('Attempting to save survey data...');
+    console.log('Current survey data:', dataToSave);
+    console.log('Purchase decision data:', dataToSave.purchaseDecision);
+    
+    try {
+      const result = await saveSurveyData(dataToSave, discountCode);
+      
+      if (result.success && result.id) {
+        setSurveyId(result.id);
+        console.log('Survey saved successfully with ID:', result.id);
+        return { success: true, id: result.id };
+      } else {
+        console.error('Failed to save survey:', result.error);
+        setError(`Error saving: ${result.error || 'Unknown issue'}`);
+        saveAttempted.current = false;
+        return { success: false, id: null };
       }
-    };
-
-    initializeDeviceTracking();
-    (window as any).surveyStartTime = Date.now();
-  }, []);
-
-  const handleWelcomeNext = (selectedLang: 'he' | 'en') => {
-    setLang(selectedLang);
-    setCurrentScreen(1);
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      setError('Error saving data. Please try again.');
+      saveAttempted.current = false;
+      return { success: false, id: null };
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleNext = async (data?: any) => {
     setError(null);
     setIsLoading(true);
-
+    
     try {
-      let updatedSurveyData = { ...surveyData, ...data };
+      // Create updated survey data
+      let updatedSurveyData = { ...surveyData };
       
-      if (data && data.exercises && data.exercises.length > 0) {
-        const exercise = data.exercises[0];
-        updatedSurveyData.metrics = exercise.metrics;
-        setTestCompleted(true);
+      // Update survey data with new information
+      if (data) {
+        if (data.exercises && data.exercises.length > 0) {
+          const exercise = data.exercises[0];
+          const exerciseCount = updatedSurveyData.exercises.length + 1;
+          
+          const updatedMetrics = {
+            totalErrors: updatedSurveyData.metrics.totalErrors + (exercise.metrics.totalErrors || 0),
+            languageErrors: updatedSurveyData.metrics.languageErrors + (exercise.metrics.languageErrors || 0),
+            punctuationErrors: updatedSurveyData.metrics.punctuationErrors + (exercise.metrics.punctuationErrors || 0),
+            deletions: updatedSurveyData.metrics.deletions + (exercise.metrics.deletions || 0),
+            corrections: updatedSurveyData.metrics.corrections + (exercise.metrics.corrections || 0),
+            languageSwitches: updatedSurveyData.metrics.languageSwitches + (exercise.metrics.languageSwitches || 0),
+            totalMistakesMade: updatedSurveyData.metrics.totalMistakesMade + (exercise.metrics.totalMistakesMade || 0),
+            finalErrors: updatedSurveyData.metrics.finalErrors + (exercise.metrics.finalErrors || 0),
+            averageDelay: Math.round((updatedSurveyData.metrics.averageDelay * (exerciseCount - 1) + exercise.metrics.averageDelay) / exerciseCount),
+            frustrationScore: Math.round((updatedSurveyData.metrics.frustrationScore * (exerciseCount - 1) + exercise.metrics.frustrationScore) / exerciseCount),
+            accuracy: Math.round((updatedSurveyData.metrics.accuracy * (exerciseCount - 1) + exercise.metrics.accuracy) / exerciseCount),
+            wpm: Math.round((updatedSurveyData.metrics.wpm * (exerciseCount - 1) + exercise.metrics.wpm) / exerciseCount)
+          };
+          
+          updatedSurveyData = {
+            ...updatedSurveyData,
+            exercises: [...updatedSurveyData.exercises, exercise],
+            metrics: updatedMetrics
+          };
+        } else {
+          updatedSurveyData = {
+            ...updatedSurveyData,
+            ...data
+          };
+        }
       }
-
+      
+      // Update state with the new data
       setSurveyData(updatedSurveyData);
-
-      // Save logic: happens on the last survey screen before Thank You
-      if (currentScreen === screens.indexOf('theEpiphany') && !saveAttempted.current && !surveyCompleted && !isRetakeTest) {
-        updatedSurveyData.testSkipped = skippedTest;
-        updatedSurveyData.testCompleted = testCompleted;
-        await saveToDatabase(updatedSurveyData);
+      
+      // Save after purchase decision screen (screen 7)
+      if (currentScreen === 7 && !saveAttempted.current) {
+        console.log('Saving after purchase decision with data:', updatedSurveyData.purchaseDecision);
+        
+        // Use the updated data directly for saving
+        const saveResult = await saveToDatabase(updatedSurveyData);
+        if (!saveResult.success) {
+          console.error('Failed to save but continuing');
+          // Don't block the user from continuing even if save failed
+        }
       }
-
-      const nextScreen = isRetakeTest && currentScreen === 3 ? 5 : currentScreen + 1;
-      setCurrentScreen(nextScreen);
-
+      
+      setCurrentScreen(prev => prev + 1);
     } catch (err) {
       console.error('Error processing data:', err);
       setError('Something went wrong. Please try again.');
@@ -253,139 +296,210 @@ function App() {
     }
   };
 
-  const saveToDatabase = async (dataToSave: any) => {
-    if (saveAttempted.current || isSaving) return { success: false, id: null };
-    
-    saveAttempted.current = true;
-    setIsSaving(true);
-    
-    try {
-      const result = await saveSurveyData(dataToSave, discountCode);
-      
-      if (result.success && result.id) {
-        setSurveyId(result.id);
-        setSurveyCompleted(true);
-        
-        if (deviceInfo) {
-          await saveDeviceInfo(result.id, deviceInfo);
-        }
-      }
-      
-      return result;
-    } catch (error) {
-      console.error('Error saving to database:', error);
-      return { success: false, error: 'Failed to save' };
-    } finally {
-      setIsSaving(false);
-    }
+  const handleShowShareCard = () => {
+    setShowShareCard(true);
   };
 
-  const handleSkipTest = () => {
-    setSkippedTest(true);
-    setCurrentScreen(6); // Skip to theAwakening
+  const handleAdminClick = () => {
+    const currentTime = Date.now();
+    
+    if (currentTime - lastClickTime.current > 2000) {
+      adminClickCount.current = 0;
+    }
+    
+    lastClickTime.current = currentTime;
+    adminClickCount.current++;
+    
+    console.log('Admin click:', adminClickCount.current);
+    
+    if (adminClickTimer.current) {
+      clearTimeout(adminClickTimer.current);
+    }
+    
+    adminClickTimer.current = setTimeout(() => {
+      adminClickCount.current = 0;
+    }, 2000);
+    
+    if (adminClickCount.current >= 5) {
+      console.log('Opening admin...');
+      adminClickCount.current = 0;
+      
+      if (adminClickTimer.current) {
+        clearTimeout(adminClickTimer.current);
+        adminClickTimer.current = null;
+      }
+      
+      const username = prompt('Admin Username:');
+      if (username === 'Miki$123456') {
+        const password = prompt('Admin Password:');
+        if (password === 'Miki$123456') {
+          console.log('Admin authenticated');
+          setShowAdmin(true);
+        } else {
+          alert('Invalid password');
+        }
+      } else if (username) {
+        alert('Invalid username');
+      }
+    }
   };
 
   const handleEmailSubmit = async (email: string) => {
-    if (surveyId) {
-      await saveEmailSubscription(email, surveyId);
+    try {
+      if (!surveyId) {
+        console.log('No survey ID, attempting to save survey first...');
+        const updatedData = { ...surveyData, email };
+        const result = await saveToDatabase(updatedData);
+        if (result.success && result.id) {
+          await saveEmailSubscription(email, result.id);
+        } else {
+          console.error('Could not save email - no survey ID');
+          setSurveyData(prev => ({ ...prev, email }));
+        }
+      } else {
+        await saveEmailSubscription(email, surveyId);
+      }
+    } catch (err) {
+      console.error('Error saving email:', err);
     }
   };
 
-  const handleShare = () => {
-    if (surveyData.metrics) {
-      setShowShareCard(true);
-    }
-  };
+  useEffect(() => {
+    return () => {
+      if (adminClickTimer.current) {
+        clearTimeout(adminClickTimer.current);
+      }
+    };
+  }, []);
 
-  const handleTryTest = () => {
-    setIsRetakeTest(true);
-    setCurrentScreen(2); // Go to beforeExercise
-  };
+  // Show admin dashboard if authenticated
+  if (showAdmin) {
+    return (
+      <AdminDashboard 
+        onLogout={() => { 
+          setShowAdmin(false);
+        }} 
+      />
+    );
+  }
+
+  // Error screen
+  if (error && currentScreen !== screens.length - 1) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-8">
+        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md text-center">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Oops!</h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <div className="space-y-2">
+            <button
+              onClick={() => {
+                setError(null);
+                if (currentScreen === 7 && !saveAttempted.current) {
+                  saveToDatabase(surveyData);
+                }
+              }}
+              className="w-full bg-blue-600 text-white py-2 px-6 rounded-lg font-semibold hover:bg-blue-700 transition"
+            >
+              Try Again
+            </button>
+            <button
+              onClick={() => {
+                setError(null);
+                setCurrentScreen(0);
+                saveAttempted.current = false;
+              }}
+              className="w-full bg-gray-200 text-gray-700 py-2 px-6 rounded-lg font-semibold hover:bg-gray-300 transition"
+            >
+              Start Over
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading screen
+  if (isLoading && screens[currentScreen] === 'thankYou') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <p className="mt-4 text-gray-600">Saving your results...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Share card
+  if (showShareCard) {
+    return <ShareCard 
+      metrics={surveyData.metrics} 
+      onClose={() => setShowShareCard(false)} 
+      selectedLanguage={surveyData.demographics.languages?.[0] || 'Arabic-English'}
+    />;
+  }
 
   const renderScreen = () => {
-    if (checkingSubmission) {
-      return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Checking your device...</p>
-          </div>
-        </div>
-      );
-    }
-
-    if (alreadySubmitted) {
-      return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md text-center">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Already Completed</h2>
-            <p className="text-gray-600 mb-6">
-              It looks like you've already completed this survey from this device or network.
-              Thank you for your participation!
-            </p>
-            <p className="text-sm text-gray-500">
-              If you believe this is an error, please contact support.
-            </p>
-          </div>
-        </div>
-      );
-    }
-
-    if (showShareCard && surveyData.metrics) {
-      return (
-        <ShareCard
-          metrics={surveyData.metrics}
-          onClose={() => setShowShareCard(false)}
-          selectedLanguage={surveyData.demographics?.languages?.[0] || 'Hebrew-English'}
-        />
-      );
-    }
-
-    if (showAdmin) {
-      return <AdminDashboard onClose={() => setShowAdmin(false)} />;
-    }
-
     const screenName = screens[currentScreen];
+    
     switch (screenName) {
       case 'welcome':
-        return <WelcomeScreen onNext={handleWelcomeNext} onAdminClick={() => setShowAdmin(true)} />;
+        return <WelcomeScreen onNext={handleNext} onAdminClick={handleAdminClick} />;
       
       case 'demographics':
         return <DemographicsScreen onNext={handleNext} />;
       
       case 'beforeExercise':
         return (
-          <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-xl p-8 max-w-2xl text-center">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">Ready for the Typing Challenge?</h2>
-              <p className="text-gray-600 mb-6">
-                You'll type a multilingual email mixing {surveyData.demographics?.languages?.[0] || 'Hebrew-English'}. 
-                This will help us analyze your real typing patterns.
-              </p>
-              <div className="flex gap-4 justify-center">
-                <button
-                  onClick={() => setCurrentScreen(3)}
-                  className="bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition"
-                >
-                  Start Typing Test
-                </button>
-                <button
-                  onClick={handleSkipTest}
-                  className="bg-gray-300 text-gray-700 py-3 px-6 rounded-lg font-semibold hover:bg-gray-400 transition"
-                >
-                  Skip Test
-                </button>
+          <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-8">
+            <div className="bg-white rounded-2xl shadow-xl p-8 max-w-2xl">
+              <div className="mb-6 text-center">
+                <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                </div>
+                <h2 className="text-3xl font-bold text-gray-800 mb-2">Ready for the Typing Exercise?</h2>
+                <p className="text-gray-600">Just 1 quick exercise to understand your typing patterns</p>
               </div>
+              
+              <div className="space-y-4 text-lg text-gray-700">
+                <p className="font-semibold">We'll measure automatically:</p>
+                <ul className="list-disc list-inside space-y-2 ml-4">
+                  <li>Typing errors and corrections</li>
+                  <li>Time to find punctuation marks</li>
+                  <li>How many times you delete and fix</li>
+                  <li>Language switching patterns</li>
+                </ul>
+                
+                <div className="bg-yellow-50 rounded-lg p-4 mt-6">
+                  <p className="text-yellow-800 font-medium">
+                    Tip: Just 1 exercise! Type naturally as you normally would - don't try to be perfect!
+                  </p>
+                </div>
+              </div>
+              
+              <button
+                onClick={() => handleNext()}
+                className="mt-8 w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition"
+              >
+                Start the Exercise
+              </button>
             </div>
           </div>
         );
       
       case 'exercise1':
         return (
-          <TypingExercise
-            exerciseNumber={1}
+          <TypingExercise 
+            exerciseNumber={1} 
             onComplete={handleNext}
-            selectedLanguage={surveyData.demographics?.languages?.[0] || 'Hebrew-English'}
+            selectedLanguage={surveyData.demographics.languages?.[0] || 'Arabic-English'}
           />
         );
       
@@ -393,77 +507,52 @@ function App() {
         return <SelfAssessment onNext={handleNext} />;
       
       case 'results':
-        return (
-          <ResultsReport
-            metrics={surveyData.metrics!}
-            onNext={handleNext}
-            onShare={handleShare}
-            isRetake={isRetakeTest}
-          />
-        );
+        return <ResultsReport 
+          metrics={surveyData.metrics} 
+          onNext={handleNext} 
+          onShare={() => {}} 
+          showBreakdown={true}
+        />;
       
-      case 'theAwakening':
-        return <TheAwakening onNext={handleNext} lang={lang} />;
+      case 'featureRating':
+        return <FeatureRating onNext={handleNext} />;
       
-      case 'theDeepDive':
-        return <TheDeepDive onNext={handleNext} lang={lang} />;
-      
-      case 'theEpiphany':
-        return <TheEpiphany onNext={handleNext} lang={lang} />;
+      case 'purchase':
+        return <PurchaseDecision onNext={handleNext} />;
       
       case 'thankYou':
-        return (
-          <ThankYou
-            discountCode={discountCode}
-            onShare={handleShare}
-            onEmailSubmit={handleEmailSubmit}
-            skippedTest={skippedTest && !testCompleted}
-            onTryTest={handleTryTest}
-          />
-        );
+        return <ThankYou 
+          discountCode={discountCode} 
+          onShare={handleShowShareCard} 
+          onEmailSubmit={handleEmailSubmit} 
+        />;
       
       default:
-        return <WelcomeScreen onNext={handleWelcomeNext} onAdminClick={() => setShowAdmin(true)} />;
+        console.error('Unknown screen:', screenName);
+        return <WelcomeScreen onNext={handleNext} onAdminClick={handleAdminClick} />;
     }
   };
-
-  const totalSteps = screens.length - 2;
-  const progressPercent = Math.round(((currentScreen) / totalSteps) * 100);
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md text-center">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">Error</h2>
-          <p className="text-gray-600 mb-6">{error}</p>
-          <button
-            onClick={() => {
-              setError(null);
-              setCurrentScreen(0);
-            }}
-            className="bg-blue-600 text-white py-2 px-6 rounded-lg font-semibold hover:bg-blue-700 transition"
-          >
-            Start Over
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen">
       {renderScreen()}
-      {currentScreen > 0 && currentScreen < screens.length - 1 && !isRetakeTest && (
+      
+      {/* Progress bar */}
+      {currentScreen > 0 && currentScreen < screens.length - 1 && (
         <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg p-2 z-40">
           <div className="max-w-4xl mx-auto">
             <div className="flex justify-between items-center mb-1">
-              <span className="text-xs text-gray-600">Step {currentScreen} of {totalSteps}</span>
-              <span className="text-xs text-gray-600">{progressPercent}% Complete</span>
+              <span className="text-xs text-gray-600">
+                Step {currentScreen} of {screens.length - 1}
+              </span>
+              <span className="text-xs text-gray-600">
+                {Math.round(((currentScreen) / (screens.length - 1)) * 100)}% Complete
+              </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div 
-                className="bg-gradient-to-r from-blue-600 to-purple-600 h-2 rounded-full transition-all duration-500" 
-                style={{ width: `${progressPercent}%` }} 
+                className="bg-gradient-to-r from-blue-600 to-purple-600 h-2 rounded-full transition-all duration-500"
+                style={{ width: `${((currentScreen) / (screens.length - 1)) * 100}%` }}
               />
             </div>
           </div>

@@ -4,11 +4,9 @@ interface Props {
   discountCode: string;
   onShare: () => void;
   onEmailSubmit?: (email: string) => void;
-  skippedTest?: boolean;
-  onTryTest?: () => void;
 }
 
-const ThankYou: React.FC<Props> = ({ discountCode, onShare, onEmailSubmit, skippedTest = false, onTryTest }) => {
+const ThankYou: React.FC<Props> = ({ discountCode, onShare, onEmailSubmit }) => {
   const [email, setEmail] = useState('');
   const [copied, setCopied] = useState(false);
   const [emailSubmitted, setEmailSubmitted] = useState(false);
@@ -25,13 +23,6 @@ const ThankYou: React.FC<Props> = ({ discountCode, onShare, onEmailSubmit, skipp
       onEmailSubmit?.(email);
       setEmailSubmitted(true);
       alert('✅ Email saved! We\'ll notify you when TypeSwitch launches.');
-    }
-  };
-
-  const handleTryTestClick = () => {
-    // FIXED: No more survey completion check - user can always try the test
-    if (onTryTest) {
-      onTryTest();
     }
   };
 
@@ -96,60 +87,24 @@ const ThankYou: React.FC<Props> = ({ discountCode, onShare, onEmailSubmit, skipp
           </p>
         </div>
 
-        {/* Share Results OR Try Test Section */}
-        {!skippedTest ? (
-          // User completed the test - show share option
-          <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-6 mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3 text-center">
-              Show Off Your Typing Skills!
-            </h3>
-            <p className="text-gray-600 text-center mb-4">
-              Create a shareable image of your results to challenge friends
-            </p>
-            <button
-              onClick={onShare}
-              className="w-full bg-gradient-to-r from-green-600 to-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-green-700 hover:to-blue-700 transition transform hover:scale-105 flex items-center justify-center"
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m9.032 4.026a9.001 9.001 0 01-7.432 0m9.032-4.026A9.001 9.001 0 0112 3c-4.474 0-8.268 3.12-9.032 7.326m0 0A9.001 9.001 0 0012 21c4.474 0 8.268-3.12 9.032-7.326" />
-              </svg>
-              Share My Results & Get Friends to Try
-            </button>
-          </div>
-        ) : (
-          // User skipped the test - show try test option
-          <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-6 mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3 text-center">
-              Want to Try the Typing Test?
-            </h3>
-            <p className="text-gray-600 text-center mb-4">
-              See how you perform and get shareable results!
-            </p>
-            <div className="space-y-3">
-              <button
-                onClick={handleTryTestClick}
-                className="w-full bg-gradient-to-r from-orange-600 to-yellow-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-orange-700 hover:to-yellow-700 transition transform hover:scale-105 flex items-center justify-center"
-              >
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                </svg>
-                Try the Test Now
-              </button>
-              <button
-                disabled
-                className="w-full bg-gray-200 text-gray-400 py-3 px-6 rounded-lg font-semibold cursor-not-allowed flex items-center justify-center opacity-50"
-              >
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m9.032 4.026a9.001 9.001 0 01-7.432 0m9.032-4.026A9.001 9.001 0 0112 3c-4.474 0-8.268 3.12-9.032 7.326m0 0A9.001 9.001 0 0012 21c4.474 0 8.268-3.12 9.032-7.326" />
-                </svg>
-                Share Results (Complete test first)
-              </button>
-            </div>
-            <p className="text-xs text-gray-500 text-center mt-3">
-              Don't worry - your survey answers are already saved!
-            </p>
-          </div>
-        )}
+        {/* Share Results Button */}
+        <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-6 mb-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-3 text-center">
+            Show Off Your Typing Skills!
+          </h3>
+          <p className="text-gray-600 text-center mb-4">
+            Create a shareable image of your results to challenge friends
+          </p>
+          <button
+            onClick={onShare}
+            className="w-full bg-gradient-to-r from-green-600 to-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-green-700 hover:to-blue-700 transition transform hover:scale-105 flex items-center justify-center"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m9.032 4.026a9.001 9.001 0 01-7.432 0m9.032-4.026A9.001 9.001 0 0112 3c-4.474 0-8.268 3.12-9.032 7.326m0 0A9.001 9.001 0 0012 21c4.474 0 8.268-3.12 9.032-7.326" />
+            </svg>
+            Share My Results & Get Friends to Try
+          </button>
+        </div>
 
         {/* Email Subscription */}
         <div className="border-t pt-6">
