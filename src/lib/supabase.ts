@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { SurveyData } from '../types'; // You might need to update this type
+import { SurveyData } from '../types';
 
 // Your Supabase credentials
 const SUPABASE_URL = 'https://raagydwyruvrayaclgbu.supabase.co';
@@ -42,7 +42,7 @@ export async function saveSurveyData(surveyData: any, discountCode: string) {
       occupation: surveyData.demographics?.occupation || null,
       keyboard_type: surveyData.demographics?.keyboardType || null,
       current_keyboard: surveyData.demographics?.currentKeyboard || null,
-      age: surveyD ata.demographics?.age || null,
+      age: surveyData.demographics?.age || null,
       diagnosis: surveyData.demographics?.diagnosis || null,
       
       // Self Assessment (if test taken)

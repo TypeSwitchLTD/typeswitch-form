@@ -1,5 +1,3 @@
-import FingerprintJS from '@fingerprintjs/fingerprintjs';
-
 export interface DeviceInfo {
   fingerprint: string;
   ip: string;
@@ -27,9 +25,32 @@ export const detectDevice = (): { type: 'mobile' | 'tablet' | 'desktop'; isMobil
 // קבלת fingerprint של המכשיר
 export const getDeviceFingerprint = async (): Promise<string> => {
   try {
-    const fp = await FingerprintJS.load();
-    const result = await fp.get();
-    return result.visitorId;
+    // Simple fingerprinting without external library
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.textBaseline = 'top';
+      ctx.font = '14px Arial';
+      ctx.fillText('Device fingerprint', 2, 2);
+    }
+    
+    const fingerprint = [
+      navigator.userAgent,
+      navigator.language,
+      screen.width + 'x' + screen.height,
+      new Date().getTimezoneOffset(),
+      canvas.toDataURL()
+    ].join('|');
+    
+    // Create a simple hash
+    let hash = 0;
+    for (let i = 0; i < fingerprint.length; i++) {
+      const char = fingerprint.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    
+    return Math.abs(hash).toString(36);
   } catch (error) {
     console.error('Error getting fingerprint:', error);
     // אם נכשל, נחזיר מזהה אקראי
