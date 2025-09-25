@@ -1,4 +1,4 @@
-import React, 'use-useState', useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 
 interface Props {
   onNext: (data: any) => void;
