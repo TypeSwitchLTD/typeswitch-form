@@ -21,111 +21,104 @@ const WelcomeScreen: React.FC<Props> = ({ onNext, onAdminClick }) => {
         </div>
 
         {/* Header */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl font-extrabold mb-4 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
               Is Your Keyboard Working Against You?
             </h1>
-            <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto mt-4">
+            <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto mt-6">
               Help us build the ultimate multilingual keyboard. Your feedback will shape its future.
             </p>
         </div>
         
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-10">
-            {/* Left Section - The "Why" */}
-            <div className="lg:col-span-3 space-y-6">
-                <div className="bg-gray-50 p-6 rounded-xl border transition-all hover:shadow-lg hover:border-blue-200">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-3 flex items-center">
-                        <span className="text-3xl mr-3">🎯</span> Shape the Future of Typing
-                    </h2>
-                    <p className="text-gray-700">
-                        We're solving the small, daily frustrations of typing in multiple languages. Your answers will directly influence our product's core features and help thousands of professionals like you.
-                    </p>
-                </div>
-                 <div className="bg-gray-50 p-6 rounded-xl border transition-all hover:shadow-lg hover:border-purple-200">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-3 flex items-center">
-                        <span className="text-3xl mr-3">🎁</span> A Thank You for Your Time
-                    </h2>
-                    <p className="text-gray-700 mb-3">As a token of our appreciation, you'll receive an exclusive early-bird discount.</p>
-                    <div className="space-y-2">
-                        <div className="bg-white p-3 rounded-md flex items-center">
-                            <span className="bg-purple-100 text-purple-700 font-bold px-3 py-1 rounded-md text-sm">15% OFF</span>
-                            <span className="ml-3 text-gray-600">For completing the 3-minute survey.</span>
-                        </div>
-                        <div className="bg-white p-3 rounded-md flex items-center">
-                            <span className="bg-purple-100 text-purple-700 font-bold px-3 py-1 rounded-md text-sm">+10% OFF</span>
-                            <span className="ml-3 text-gray-600">For leaving your email for launch updates.</span>
-                        </div>
+        {/* Main Content Sections - Now in a single vertical column */}
+        <div className="space-y-8">
+            {/* 1. Shape the Future */}
+            <div className="bg-gray-50 p-6 rounded-xl border transition-all hover:shadow-lg hover:border-blue-200">
+                <h2 className="text-2xl font-bold text-gray-800 mb-3 flex items-center">
+                    <span className="text-3xl mr-3">🎯</span> Shape the Future of Typing
+                </h2>
+                <p className="text-gray-700">
+                    We're solving the small, daily frustrations of typing in multiple languages. Your answers will directly influence our product's core features and help thousands of professionals like you.
+                </p>
+            </div>
+
+            {/* 2. The Process */}
+            <div className="bg-gray-50 p-6 rounded-xl border transition-all hover:shadow-lg hover:border-gray-200">
+                <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">3 Simple Steps</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                    <div>
+                        <div className="text-4xl mb-2">📝</div>
+                        <h3 className="font-semibold text-gray-800">Quick Survey</h3>
+                        <p className="text-sm text-gray-600">Answer a few questions about your typing habits (1-3 mins).</p>
+                    </div>
+                    <div>
+                        <div className="text-4xl mb-2">⌨️</div>
+                        <h3 className="font-semibold text-gray-800">Optional Challenge</h3>
+                        <p className="text-sm text-gray-600">Take a 3-min typing test to analyze your skills.</p>
+                    </div>
+                    <div>
+                        <div className="text-4xl mb-2">🎉</div>
+                        <h3 className="font-semibold text-gray-800">Get Your Reward</h3>
+                        <p className="text-sm text-gray-600">Receive your exclusive discount code for our launch.</p>
                     </div>
                 </div>
             </div>
 
-            {/* Right Section - The Process */}
-            <div className="lg:col-span-2 bg-gradient-to-br from-blue-50 to-indigo-100 p-6 rounded-xl border border-blue-200">
-                 <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">3 Simple Steps</h2>
-                 <div className="space-y-4">
-                    <div className="flex items-start">
-                        <div className="text-3xl mr-4">📝</div>
-                        <div>
-                            <h3 className="font-semibold text-gray-800">Quick Survey</h3>
-                            <p className="text-sm text-gray-600">Answer a few questions about your typing habits (1-3 mins).</p>
-                        </div>
+            {/* 3. The Reward */}
+            <div className="bg-gray-50 p-6 rounded-xl border transition-all hover:shadow-lg hover:border-purple-200">
+                <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                    <span className="text-3xl mr-3">🎁</span> A Thank You for Your Time
+                </h2>
+                <p className="text-gray-700 mb-4">As a token of our appreciation, you'll receive an exclusive early-bird discount in two parts:</p>
+                <div className="flex flex-col items-center space-y-2">
+                    <div className="bg-white p-3 rounded-md flex items-center w-full md:w-3/4 shadow-sm">
+                        <span className="bg-purple-100 text-purple-700 font-bold px-3 py-1 rounded-md text-sm">15% OFF</span>
+                        <span className="ml-4 text-gray-600">For completing the 3-minute survey.</span>
                     </div>
-                    <hr/>
-                    <div className="flex items-start">
-                        <div className="text-3xl mr-4">⌨️</div>
-                        <div>
-                            <h3 className="font-semibold text-gray-800">Optional Challenge</h3>
-                            <p className="text-sm text-gray-600">Take a 3-min typing test to analyze your skills.</p>
-                        </div>
+                    <div className="text-2xl font-light text-purple-500">+</div>
+                    <div className="bg-white p-3 rounded-md flex items-center w-full md:w-3/4 shadow-sm">
+                        <span className="bg-purple-100 text-purple-700 font-bold px-3 py-1 rounded-md text-sm">10% OFF</span>
+                        <span className="ml-4 text-gray-600">For leaving your email for launch updates.</span>
                     </div>
-                    <hr/>
-                    <div className="flex items-start">
-                        <div className="text-3xl mr-4">🎉</div>
-                        <div>
-                            <h3 className="font-semibold text-gray-800">Get Your Reward</h3>
-                            <p className="text-sm text-gray-600">Receive your discount code for our launch.</p>
-                        </div>
-                    </div>
-                 </div>
+                </div>
             </div>
         </div>
         
         {/* Optional Typing Challenge Details */}
-        <div className="bg-gray-50 p-6 rounded-xl border mb-10">
+        <div className="bg-white p-6 rounded-xl mt-8">
             <h2 className="text-2xl font-bold text-gray-800 mb-3 text-center">Curious? Take the Optional Typing Challenge</h2>
             <p className="text-center text-gray-600 mb-4">See your multilingual skills in black and white. Our test provides a detailed personal report on:</p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                <div>
-                    <div className="text-2xl">🚀</div>
-                    <h4 className="font-semibold">True WPM</h4>
+                <div className="bg-gray-50 p-3 rounded-lg">
+                    <div className="text-3xl">🚀</div>
+                    <h4 className="font-semibold mt-1">True WPM</h4>
                     <p className="text-xs text-gray-500">Your speed when switching languages.</p>
                 </div>
-                 <div>
-                    <div className="text-2xl">🎯</div>
-                    <h4 className="font-semibold">Accuracy</h4>
-                    <p className="text-xs text-gray-500">A breakdown of language vs. standard errors.</p>
+                 <div className="bg-gray-50 p-3 rounded-lg">
+                    <div className="text-3xl">🎯</div>
+                    <h4 className="font-semibold mt-1">Accuracy</h4>
+                    <p className="text-xs text-gray-500">Language vs. standard errors breakdown.</p>
                 </div>
-                 <div>
-                    <div className="text-2xl">⏳</div>
-                    <h4 className="font-semibold">Wasted Time</h4>
+                 <div className="bg-gray-50 p-3 rounded-lg">
+                    <div className="text-3xl">⏳</div>
+                    <h4 className="font-semibold mt-1">Wasted Time</h4>
                     <p className="text-xs text-gray-500">Seconds lost on backspacing & corrections.</p>
                 </div>
-                 <div>
-                    <div className="text-2xl">😤</div>
-                    <h4 className="font-semibold">Frustration Score</h4>
+                 <div className="bg-gray-50 p-3 rounded-lg">
+                    <div className="text-3xl">😤</div>
+                    <h4 className="font-semibold mt-1">Frustration Score</h4>
                     <p className="text-xs text-gray-500">Based on pauses and repeated edits.</p>
                 </div>
             </div>
         </div>
 
         {/* CTA Button */}
-        <div className="text-center">
+        <div className="text-center mt-10">
             <button
               onClick={onNext}
-              className="w-full md:w-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-12 rounded-lg font-bold text-xl hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+              className="w-full md:w-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-16 rounded-lg font-bold text-xl hover:shadow-xl transition-all duration-300 transform hover:scale-105"
             >
-              Start the 3-Minute Survey
+              Start Survey
             </button>
             <div className="mt-6 flex items-center justify-center space-x-6 text-sm text-gray-500">
                 <div className="flex items-center space-x-1.5">
