@@ -76,10 +76,9 @@ export const checkIfAlreadySubmitted = async (fingerprint: string, ip: string): 
     const { supabase } = await import('./supabase');
     
     const { data, error } = await supabase
-      .from('survey_responses')
+      .from('survey_responses_v2')
       .select('id')
       .or(`device_fingerprint.eq.${fingerprint},ip_address.eq.${ip}`)
-      .eq('survey_completed', true)
       .limit(1);
     
     if (error) {
@@ -100,12 +99,11 @@ export const saveDeviceInfo = async (surveyId: string, deviceInfo: DeviceInfo): 
     const { supabase } = await import('./supabase');
     
     const { error } = await supabase
-      .from('survey_responses')
+      .from('survey_responses_v2')
       .update({
-        ip_address: deviceInfo.ip,
         device_fingerprint: deviceInfo.fingerprint,
         device_type: deviceInfo.deviceType,
-        survey_completed: true
+        ip_address: deviceInfo.ip
       })
       .eq('id', surveyId);
     

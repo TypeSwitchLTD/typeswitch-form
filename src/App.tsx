@@ -182,6 +182,9 @@ function App() {
   useEffect(() => {
     const initializeDeviceTracking = async () => {
       try {
+        // Set checkingSubmission to false immediately so welcome screen shows
+        setCheckingSubmission(false);
+        
         const device = detectDevice();
         setIsMobileDevice(device.isMobile);
         
@@ -203,8 +206,8 @@ function App() {
         setAlreadySubmitted(alreadySubmitted);
       } catch (error) {
         console.error('Error initializing device tracking:', error);
-      } finally {
-        setCheckingSubmission(false);
+        // Even if there's an error, allow the user to proceed
+        setAlreadySubmitted(false);
       }
     };
 
