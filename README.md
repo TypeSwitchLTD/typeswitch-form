@@ -1,2 +1,0 @@
-# typeswitch-form
-TypeSwitch Form
