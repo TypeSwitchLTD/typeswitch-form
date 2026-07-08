@@ -5,6 +5,7 @@ import { SurveyData } from './types';
 import WelcomeScreen from './components/WelcomeScreen';
 import DemographicsScreen from './components/DemographicsScreen';
 import TypingExercise from './components/TypingExercise';
+import FreeTypingExercise from './components/FreeTypingExercise';
 import SelfAssessment from './components/SelfAssessment';
 import ResultsReport from './components/ResultsReport';
 import FeatureRating from './components/FeatureRating';
@@ -461,7 +462,7 @@ function App() {
                     </div>
                   ) : (
                     <>
-                      <div className="grid md:grid-cols-2 gap-4 mt-6">
+                      <div className="grid md:grid-cols-3 gap-4 mt-6">
                         <div onClick={() => handleStartChallenge('purchasing_email')} className="border-2 border-blue-200 hover:border-blue-400 bg-blue-50 rounded-lg p-6 cursor-pointer transition">
                           <h3 className="font-bold text-blue-800 text-lg mb-2">{t.beforeExercise.challenge1Name}</h3>
                           <p className="text-sm text-gray-700">{t.beforeExercise.challenge1Desc}</p>
@@ -469,6 +470,11 @@ function App() {
                         <div onClick={() => handleStartChallenge('student_article')} className="border-2 border-purple-200 hover:border-purple-400 bg-purple-50 rounded-lg p-6 cursor-pointer transition">
                           <h3 className="font-bold text-purple-800 text-lg mb-2">{t.beforeExercise.challenge2Name}</h3>
                           <p className="text-sm text-gray-700">{t.beforeExercise.challenge2Desc}</p>
+                        </div>
+                        <div onClick={() => handleStartChallenge('free_typing')} className="border-2 border-green-200 hover:border-green-400 bg-green-50 rounded-lg p-6 cursor-pointer transition relative">
+                          <span className="absolute top-2 end-2 bg-green-600 text-white text-xs px-2 py-0.5 rounded-full">{t.beforeExercise.challenge3Badge}</span>
+                          <h3 className="font-bold text-green-800 text-lg mb-2">{t.beforeExercise.challenge3Name}</h3>
+                          <p className="text-sm text-gray-700">{t.beforeExercise.challenge3Desc}</p>
                         </div>
                       </div>
 
@@ -511,6 +517,9 @@ function App() {
                         <button onClick={() => handleStartChallenge('purchasing_email')} className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition">
                           {t.beforeExercise.startButton}
                         </button>
+                        <button onClick={() => handleStartChallenge('free_typing')} className="flex-1 bg-green-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-green-700 transition">
+                          {t.beforeExercise.challenge3Name}
+                        </button>
                         {!surveyCompleted && !isRetakeTest && (
                           <button onClick={handleSkipTest} className="flex-1 bg-gray-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-700 transition">
                             {t.beforeExercise.skipButton}
@@ -526,6 +535,9 @@ function App() {
         );
 
       case 'exercise1':
+        if (!isRetakeTest && chosenExercise === 'free_typing') {
+          return <FreeTypingExercise onComplete={handleNext} onBack={() => setCurrentScreen(screens.indexOf('beforeExercise'))} selectedLanguage={surveyData.demographics.languages?.[0] || 'Hebrew-English'} t={getTranslations('freeExercise')} />;
+        }
         return <TypingExercise chosenExercise={isRetakeTest ? 'purchasing_email' : chosenExercise} onComplete={handleNext} onBack={() => setCurrentScreen(screens.indexOf('beforeExercise'))} selectedLanguage={surveyData.demographics.languages?.[0] || 'Hebrew-English'} t={getTranslations('exercise1')} />;
 
       case 'selfAssessment':

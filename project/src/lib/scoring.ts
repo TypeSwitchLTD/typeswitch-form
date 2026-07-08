@@ -126,9 +126,74 @@ const computeScoreParts = (metrics: TypingMetrics, completionRate: number): Scor
   return { penalties, speedAdjustment, wpm, cap };
 };
 
+// FREE TYPING test: no reference text, so the components differ -
+// deletion RATE replaces absolute deletions, switch HESITATION replaces
+// completion. Language errors here are behaviorally-detected incidents
+// (wrong-language word deleted & retyped), priced identically to v2.
+const computeFreeScoreParts = (metrics: TypingMetrics): ScoreParts => {
+  const languageErrors = safeNum(metrics?.languageErrors);
+  const punctuationErrors = safeNum(metrics?.punctuationErrors);
+  const wpm = safeNum(metrics?.wpm);
+  const frustration = safeNum(metrics?.frustrationScore);
+  const accuracy = safeNum(metrics?.accuracy);
+  const deletionRate = safeNum((metrics as any)?.deletionRate);
+  const recoveryRatio = Math.max(1, safeNum((metrics as any)?.switchRecoveryRatio) || 1);
+
+  const penalties: ScoreParts['penalties'] = [];
+
+  if (languageErrors > 0) {
+    penalties.push({
+      category: 'Language Errors',
+      penalty: round1(getLanguagePenalty(languageErrors)),
+      reason: `${languageErrors} wrong-language words (deleted & retyped)`
+    });
+  }
+
+  if (punctuationErrors > 0) {
+    penalties.push({
+      category: 'Punctuation Fumbles',
+      penalty: round1(Math.min(12, punctuationErrors * 1.5)),
+      reason: `${punctuationErrors} punctuation corrections`
+    });
+  }
+
+  if (deletionRate > 8) {
+    penalties.push({
+      category: 'Excessive Deletions',
+      penalty: round1(Math.min(10, (deletionRate - 8) * 1.25)),
+      reason: `${deletionRate.toFixed(0)} deleted chars per 100 typed`
+    });
+  }
+
+  if (recoveryRatio > 1.5) {
+    penalties.push({
+      category: 'Switch Hesitation',
+      penalty: round1(Math.min(10, (recoveryRatio - 1.5) * 4)),
+      reason: `${recoveryRatio.toFixed(1)}x slower at language switches`
+    });
+  }
+
+  const speedAdjustment = getSpeedAdjustment(wpm, languageErrors);
+
+  if (frustration > 0) {
+    penalties.push({
+      category: 'Flow Disruption',
+      penalty: round1(Math.min(7, frustration * 0.7)),
+      reason: `${frustration}/10 flow score`
+    });
+  }
+
+  const cap = getQualityCap(languageErrors, accuracy);
+  return { penalties, speedAdjustment, wpm, cap };
+};
+
+const isFreeTest = (metrics: TypingMetrics): boolean => !!(metrics as any)?.freeTest;
+
 // SCORING ALGORITHM v2 - Range 45-100
 export const calculateOverallScore = (metrics: TypingMetrics, completionRate: number = 100): number => {
-  const { penalties, speedAdjustment, cap } = computeScoreParts(metrics, completionRate);
+  const { penalties, speedAdjustment, cap } = isFreeTest(metrics)
+    ? computeFreeScoreParts(metrics)
+    : computeScoreParts(metrics, completionRate);
   const totalPenalty = penalties.reduce((sum, p) => sum + p.penalty, 0);
   let score = 100 - totalPenalty + speedAdjustment;
   score = Math.min(score, cap.cap); // quality gate
@@ -154,7 +219,9 @@ export interface ScoreBreakdownItem {
 // including a visible "quality gate" line when the cap trims the score,
 // so "100 - deductions + bonus" always reconciles with the final score.
 export const getScoreBreakdown = (metrics: TypingMetrics, completionRate: number = 100) => {
-  const { penalties, speedAdjustment, wpm, cap } = computeScoreParts(metrics, completionRate);
+  const { penalties, speedAdjustment, wpm, cap } = isFreeTest(metrics)
+    ? computeFreeScoreParts(metrics)
+    : computeScoreParts(metrics, completionRate);
 
   const breakdown: ScoreBreakdownItem[] = [...penalties];
 

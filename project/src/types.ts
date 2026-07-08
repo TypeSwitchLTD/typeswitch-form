@@ -18,6 +18,16 @@ export interface TypingMetrics {
   completionRate?: number;       // 0-100
   testDurationSeconds?: number;  // measured from first keystroke to completion
   tabSwitches?: number;          // times the user left the tab mid-exercise
+  // FREE TYPING test extras:
+  freeTest?: boolean;            // marks metrics produced by the free-typing test
+  wordCount?: number;
+  secondaryWords?: number;
+  punctuationUses?: number;
+  mixedWords?: number;
+  deletionRate?: number;         // deleted chars per 100 typed chars
+  switchRecoveryRatio?: number;  // boundary delay / baseline delay
+  layoutConfirmedIncidents?: number;
+  topic?: string | null;
 }
 
 export interface ErrorDetail {

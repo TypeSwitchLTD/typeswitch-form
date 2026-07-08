@@ -32,6 +32,7 @@ const ResultsReport: React.FC<Props> = ({
     );
   }
 
+  const isFreeTest = !!(metrics as any).freeTest;
   const rawCompletion = (metrics as any).completionRate;
   const completionRate = Math.min(100, Math.max(0,
     (typeof rawCompletion === 'number' && isFinite(rawCompletion) && rawCompletion > 0) ? rawCompletion : 100
@@ -146,11 +147,21 @@ const ResultsReport: React.FC<Props> = ({
             </div>
 
             <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-3 text-center">
-              <h3 className="font-semibold text-gray-700 mb-1 text-xs">{t.textCompleted}</h3>
-              <p className={`text-2xl font-bold ${completionRate >= 90 ? 'text-green-600' : completionRate >= 70 ? 'text-yellow-600' : 'text-red-600'}`}>
-                {Math.round(completionRate)}%
-              </p>
-              <p className="text-xs text-gray-600">{t.completedSubtext}</p>
+              {isFreeTest ? (
+                <>
+                  <h3 className="font-semibold text-gray-700 mb-1 text-xs">{t.wordsWritten || 'Words Written'}</h3>
+                  <p className="text-2xl font-bold text-green-600">{(metrics as any).wordCount || 0}</p>
+                  <p className="text-xs text-gray-600">{t.freeWritingSubtext || 'own words, both languages'}</p>
+                </>
+              ) : (
+                <>
+                  <h3 className="font-semibold text-gray-700 mb-1 text-xs">{t.textCompleted}</h3>
+                  <p className={`text-2xl font-bold ${completionRate >= 90 ? 'text-green-600' : completionRate >= 70 ? 'text-yellow-600' : 'text-red-600'}`}>
+                    {Math.round(completionRate)}%
+                  </p>
+                  <p className="text-xs text-gray-600">{t.completedSubtext}</p>
+                </>
+              )}
             </div>
           </div>
 

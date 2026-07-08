@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "typecheck": "tsc -b",
     "test:scoring": "node scripts/scoring.test.mjs",
-    "verify": "npm run typecheck && npm run test:scoring && npm run build"
+    "verify": "npm run typecheck && npm run test:scoring && npm run test:free && npm run build",
+    "test:free": "node scripts/freetyping.test.mjs"
   },
   "dependencies": {
     "@fingerprintjs/fingerprintjs": "^4.6.2",
